@@ -11,9 +11,9 @@ import time
 import warnings
 
 from contextlib import contextmanager
-from matplotlib.font_manager import FontProperties
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import KFold, StratifiedKFold
+from pandas.core.common import SettingWithCopyWarning
 
 from preprocessing import train_test, historical_transactions, merchants, new_merchant_transactions
 from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, loadpkl, save2pkl, rmse, submit
@@ -177,7 +177,7 @@ def main(debug=False, use_pkl=False):
         kfold_lightgbm(df, num_folds=NUM_FOLDS, stratified=False, debug=debug)
 
 if __name__ == "__main__":
-    submission_file_name = "../output/submission.tsv"
+    submission_file_name = "../output/submission.csv"
     oof_file_name = "../output/oof_lgbm.csv"
     with timer("Full model run"):
         main(debug=False,use_pkl=False)

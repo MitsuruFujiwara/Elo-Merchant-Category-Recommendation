@@ -147,11 +147,13 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
     if not debug:
         # 提出データの予測値を保存
         test_df.loc[:,'target'] = sub_preds
-        test_df['target'].to_csv(submission_file_name, index=True)
+        test_df = test_df.reset_index()
+        test_df[['card_id', 'target']].to_csv(submission_file_name, index=False)
 
         # out of foldの予測値を保存
         train_df.loc[:,'OOF_PRED'] = oof_preds
-        train_df['OOF_PRED'].to_csv(oof_file_name, index=True)
+        train_df = train_df.reset_index()
+        train_df[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
 
         # API経由でsubmit
         submit(submission_file_name, comment='cv: %.6f' % full_rmse)

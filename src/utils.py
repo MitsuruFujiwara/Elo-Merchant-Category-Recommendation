@@ -6,6 +6,7 @@ import requests
 import pickle
 
 from sklearn.metrics import mean_squared_error
+from time import time, sleep
 
 NUM_FOLDS = 5
 

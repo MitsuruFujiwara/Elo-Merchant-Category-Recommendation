@@ -158,7 +158,6 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
         # API経由でsubmit
         submit(submission_file_name, comment='cv: %.6f' % full_rmse)
 
-
 def main(debug=False, use_pkl=False):
     num_rows = 10000 if debug else None
     if use_pkl:
@@ -166,8 +165,8 @@ def main(debug=False, use_pkl=False):
     else:
         with timer("train & test"):
             df = train_test(num_rows)
-#        with timer("historical transactions"):
-#            df = pd.merge(df, historical_transactions(num_rows), on='card_id', how='outer')
+        with timer("historical transactions"):
+            df = pd.merge(df, historical_transactions(num_rows), on='card_id', how='outer')
 #        with timer("merchants"):
 #            df = pd.merge(df, merchants(num_rows), on='card_id', how='outer')
 #        with timer("merchants"):
@@ -182,4 +181,4 @@ if __name__ == "__main__":
     submission_file_name = "../output/submission.csv"
     oof_file_name = "../output/oof_lgbm.csv"
     with timer("Full model run"):
-        main(debug=False,use_pkl=False)
+        main(debug=True,use_pkl=False)

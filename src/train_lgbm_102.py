@@ -75,7 +75,7 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
 
     # k-fold
-    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], train_df['target'])):
+    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], train_df['outliers'])):
         train_x, train_y = train_df[feats].iloc[train_idx], train_df['target'].iloc[train_idx]
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['target'].iloc[valid_idx]
 
@@ -170,13 +170,13 @@ def main(debug=False, use_pkl=False):
             df = pd.merge(df, historical_transactions(num_rows), on='card_id', how='outer')
 #        with timer("merchants"):
 #            df = pd.merge(df, merchants(num_rows), on='card_id', how='outer')
-        with timer("merchants"):
+        with timer("new merchants"):
             df = pd.merge(df, new_merchant_transactions(num_rows), on='card_id', how='outer')
         with timer("save pkl"):
             save2pkl('../output/df.pkl', df)
     with timer("Run LightGBM with kfold"):
         print("df shape:", df.shape)
-        kfold_lightgbm(df, num_folds=NUM_FOLDS, stratified=False, debug=debug)
+        kfold_lightgbm(df, num_folds=NUM_FOLDS, stratified=True, debug=debug)
 
 if __name__ == "__main__":
     submission_file_name = "../output/submission.csv"

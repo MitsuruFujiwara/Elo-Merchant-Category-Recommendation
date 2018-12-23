@@ -1,13 +1,16 @@
 
-import pandas as pd
-import numpy as np
+
+import datetime
 import gc
+import numpy as np
 import os
+import pandas as pd
 import time
 
 from contextlib import contextmanager
+from workalendar.america import Brazil
+
 from utils import one_hot_encoder
-import datetime
 
 ################################################################################
 # 提供データを読み込み、データに前処理を施し、モデルに入力が可能な状態でファイル出力するモジュール。
@@ -28,6 +31,10 @@ def train_test(num_rows=None):
     test_df = pd.read_csv('../input/test.csv', index_col=['card_id'], nrows=num_rows)
 
     print("Train samples: {}, test samples: {}".format(len(train_df), len(test_df)))
+
+    # outlier
+    train_df['outliers'] = 0
+    train_df.loc[train_df['target'] < -30, 'outliers'] = 1
 
     # set target as nan
     test_df['target'] = np.nan
@@ -79,6 +86,10 @@ def historical_transactions(num_rows=None):
     hist_df['weekday'] = hist_df['purchase_date'].dt.weekday
     hist_df['weekend'] = (hist_df['purchase_date'].dt.weekday >=5).astype(int)
 
+    #ブラジルの休日
+    cal = Brazil()
+    hist_df['is_holiday'] = hist_df['purchase_date'].dt.date.apply(cal.is_holiday).astype(int)
+
     hist_df['month_diff'] = ((datetime.datetime.today() - hist_df['purchase_date']).dt.days)//30
     hist_df['month_diff'] += hist_df['month_lag']
 
@@ -88,15 +99,16 @@ def historical_transactions(num_rows=None):
     for col in col_unique:
         aggs[col] = ['nunique']
 
-    aggs['purchase_amount'] = ['sum','max','min','mean','var']
-    aggs['installments'] = ['sum','max','min','mean','var']
+    aggs['purchase_amount'] = ['sum','max','min','mean','var', 'std', 'skew']
+    aggs['installments'] = ['sum','max','min','mean','var', 'std', 'skew']
     aggs['purchase_date'] = ['max','min']
-    aggs['month_lag'] = ['max','min','mean','var']
+    aggs['month_lag'] = ['max','min','mean','var', 'std', 'skew']
     aggs['month_diff'] = ['mean']
     aggs['authorized_flag'] = ['sum', 'mean']
     aggs['weekend'] = ['sum', 'mean']
     aggs['category_1'] = ['sum', 'mean']
     aggs['card_id'] = ['size']
+    aggs['is_holiday'] = ['sum', 'mean']
 
     for col in ['category_2','category_3']:
         hist_df[col+'_mean'] = hist_df.groupby([col])['purchase_amount'].transform('mean')
@@ -160,6 +172,10 @@ def new_merchant_transactions(num_rows=None):
     new_merchant_df['weekday'] = new_merchant_df['purchase_date'].dt.weekday
     new_merchant_df['weekend'] = (new_merchant_df['purchase_date'].dt.weekday >=5).astype(int)
 
+    #ブラジルの休日
+    cal = Brazil()
+    new_merchant_df['is_holiday'] = new_merchant_df['purchase_date'].dt.date.apply(cal.is_holiday).astype(int)
+
     new_merchant_df['month_diff'] = ((datetime.datetime.today() - new_merchant_df['purchase_date']).dt.days)//30
     new_merchant_df['month_diff'] += new_merchant_df['month_lag']
 
@@ -169,15 +185,16 @@ def new_merchant_transactions(num_rows=None):
     for col in col_unique:
         aggs[col] = ['nunique']
 
-    aggs['purchase_amount'] = ['sum','max','min','mean','var']
-    aggs['installments'] = ['sum','max','min','mean','var']
+    aggs['purchase_amount'] = ['sum','max','min','mean','var','std','skew']
+    aggs['installments'] = ['sum','max','min','mean','var','std','skew']
     aggs['purchase_date'] = ['max','min']
-    aggs['month_lag'] = ['max','min','mean','var']
+    aggs['month_lag'] = ['max','min','mean','var','std','skew']
     aggs['month_diff'] = ['mean']
     aggs['authorized_flag'] = ['sum', 'mean']
     aggs['weekend'] = ['sum', 'mean']
     aggs['category_1'] = ['sum', 'mean']
     aggs['card_id'] = ['size']
+    aggs['is_holiday'] = ['sum', 'mean']
 
     for col in ['category_2','category_3']:
         new_merchant_df[col+'_mean'] = new_merchant_df.groupby([col])['purchase_amount'].transform('mean')

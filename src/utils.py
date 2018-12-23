@@ -8,7 +8,7 @@ import pickle
 from sklearn.metrics import mean_squared_error
 from time import time, sleep
 
-NUM_FOLDS = 5
+NUM_FOLDS = 10
 
 FEATS_EXCLUDED = ['first_active_month', 'target', 'card_id', 'outliers',
                   'hist_purchase_date_max', 'hist_purchase_date_min', 'hist_card_id_size',

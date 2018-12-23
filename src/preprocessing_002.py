@@ -7,6 +7,7 @@ import time
 
 from contextlib import contextmanager
 from utils import one_hot_encoder
+import datetime
 
 ################################################################################
 # 提供データを読み込み、データに前処理を施し、モデルに入力が可能な状態でファイル出力するモジュール。
@@ -59,26 +60,50 @@ def historical_transactions(num_rows=None):
     # load csv
     hist_df = pd.read_csv('../input/historical_transactions.csv', nrows=num_rows, index_col=['card_id'])
 
+    # fillna
+    hist_df['category_2'].fillna(1.0,inplace=True)
+    hist_df['category_3'].fillna('A',inplace=True)
+    hist_df['merchant_id'].fillna('M_ID_00a6ca8a8a',inplace=True)
+
     # Y/Nのカラムを1-0へ変換
     hist_df['authorized_flag'] = hist_df['authorized_flag'].map({'Y': 1, 'N': 0}).astype(int)
     hist_df['category_1'] = hist_df['category_1'].map({'Y': 1, 'N': 0}).astype(int)
 
     # datetime features
     hist_df['purchase_date'] = pd.to_datetime(hist_df['purchase_date'])
-#    hist_df['year'] = hist_df['purchase_date'].dt.year.astype(object)
-#    hist_df['month'] = hist_df['purchase_date'].dt.month.astype(object)
-#    hist_df['day'] = hist_df['purchase_date'].dt.day.astype(object)
-#    hist_df['hour'] = hist_df['purchase_date'].dt.hour.astype(object)
+    hist_df['year'] = hist_df['purchase_date'].dt.year
+    hist_df['month'] = hist_df['purchase_date'].dt.month
+    hist_df['day'] = hist_df['purchase_date'].dt.day
+    hist_df['hour'] = hist_df['purchase_date'].dt.hour
+    hist_df['weekofyear'] = hist_df['purchase_date'].dt.weekofyear
+    hist_df['weekday'] = hist_df['purchase_date'].dt.weekday
     hist_df['weekend'] = (hist_df['purchase_date'].dt.weekday >=5).astype(int)
 
-    hist_df = hist_df.drop('purchase_date', axis=1)
+    hist_df['month_diff'] = ((datetime.datetime.today() - hist_df['purchase_date']).dt.days)//30
+    hist_df['month_diff'] += hist_df['month_lag']
 
-#    hist_df, cols = one_hot_encoder(hist_df, nan_as_category=False)
+    col_unique =['month', 'hour', 'weekofyear', 'weekday', 'year', 'day',
+                 'subsector_id', 'merchant_id', 'merchant_category_id']
+    aggs = {}
+    for col in col_unique:
+        aggs[col] = ['nunique']
 
-    hist_df = hist_df.groupby('card_id').mean()
+    aggs['purchase_amount'] = ['sum','max','min','mean','var']
+    aggs['installments'] = ['sum','max','min','mean','var']
+#    aggs['purchase_date'] = ['max','min']
+    aggs['month_lag'] = ['max','min','mean','var']
+    aggs['month_diff'] = ['mean']
+    aggs['authorized_flag'] = ['sum', 'mean']
+    aggs['weekend'] = ['sum', 'mean']
+    aggs['category_1'] = ['sum', 'mean']
+#    aggs['category_2'] = ['sum', 'mean']
+#    aggs['category_3'] = ['sum', 'mean']
+#    aggs['card_id'] = ['size']
 
-    # TODO:Memory Error回避
+    hist_df = hist_df.groupby('card_id').agg(aggs)
 
+    # カラム名の変更
+    hist_df.columns = pd.Index([e[0] + "_" + e[1] for e in hist_df.columns.tolist()])
     hist_df.columns = ['hist_'+ c for c in hist_df.columns]
 
     return hist_df
@@ -87,6 +112,18 @@ def historical_transactions(num_rows=None):
 def merchants(num_rows=None):
     # load csv
     merchants_df = pd.read_csv('../input/merchants.csv', nrows=num_rows)
+
+    # fillna
+    merchants_df['category_2'].fillna(1.0,inplace=True)
+    merchants_df['category_3'].fillna('A',inplace=True)
+    merchants_df['merchant_id'].fillna('M_ID_00a6ca8a8a',inplace=True)
+
+    # Y/Nのカラムを1-0へ変換
+    merchants_df['authorized_flag'] = merchants_df['authorized_flag'].map({'Y': 1, 'N': 0}).astype(int)
+    merchants_df['category_1'] = merchants_df['category_1'].map({'Y': 1, 'N': 0}).astype(int)
+
+    # datetime features
+    merchants_df['purchase_date'] = pd.to_datetime(merchants_df['purchase_date'])
 
     # TODO:
 

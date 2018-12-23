@@ -170,8 +170,8 @@ def main(debug=False, use_pkl=False):
             df = pd.merge(df, historical_transactions(num_rows), on='card_id', how='outer')
 #        with timer("merchants"):
 #            df = pd.merge(df, merchants(num_rows), on='card_id', how='outer')
-#        with timer("merchants"):
-#            df = pd.merge(df, new_merchant_transactions(num_rows), on='card_id', how='outer')
+        with timer("merchants"):
+            df = pd.merge(df, new_merchant_transactions(num_rows), on='card_id', how='outer')
         with timer("save pkl"):
             save2pkl('../output/df.pkl', df)
     with timer("Run LightGBM with kfold"):

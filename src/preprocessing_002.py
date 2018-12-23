@@ -141,7 +141,57 @@ def new_merchant_transactions(num_rows=None):
     # load csv
     new_merchant_df = pd.read_csv('../input/new_merchant_transactions.csv', nrows=num_rows)
 
-    # TODO:
+    # fillna
+    new_merchant_df['category_2'].fillna(1.0,inplace=True)
+    new_merchant_df['category_3'].fillna('A',inplace=True)
+    new_merchant_df['merchant_id'].fillna('M_ID_00a6ca8a8a',inplace=True)
+
+    # Y/Nのカラムを1-0へ変換
+    new_merchant_df['authorized_flag'] = new_merchant_df['authorized_flag'].map({'Y': 1, 'N': 0}).astype(int)
+    new_merchant_df['category_1'] = new_merchant_df['category_1'].map({'Y': 1, 'N': 0}).astype(int)
+
+    # datetime features
+    new_merchant_df['purchase_date'] = pd.to_datetime(new_merchant_df['purchase_date'])
+    new_merchant_df['year'] = new_merchant_df['purchase_date'].dt.year
+    new_merchant_df['month'] = new_merchant_df['purchase_date'].dt.month
+    new_merchant_df['day'] = new_merchant_df['purchase_date'].dt.day
+    new_merchant_df['hour'] = new_merchant_df['purchase_date'].dt.hour
+    new_merchant_df['weekofyear'] = new_merchant_df['purchase_date'].dt.weekofyear
+    new_merchant_df['weekday'] = new_merchant_df['purchase_date'].dt.weekday
+    new_merchant_df['weekend'] = (new_merchant_df['purchase_date'].dt.weekday >=5).astype(int)
+
+    new_merchant_df['month_diff'] = ((datetime.datetime.today() - new_merchant_df['purchase_date']).dt.days)//30
+    new_merchant_df['month_diff'] += new_merchant_df['month_lag']
+
+    col_unique =['month', 'hour', 'weekofyear', 'weekday', 'year', 'day',
+                 'subsector_id', 'merchant_id', 'merchant_category_id']
+    aggs = {}
+    for col in col_unique:
+        aggs[col] = ['nunique']
+
+    aggs['purchase_amount'] = ['sum','max','min','mean','var']
+    aggs['installments'] = ['sum','max','min','mean','var']
+    aggs['purchase_date'] = ['max','min']
+    aggs['month_lag'] = ['max','min','mean','var']
+    aggs['month_diff'] = ['mean']
+    aggs['authorized_flag'] = ['sum', 'mean']
+    aggs['weekend'] = ['sum', 'mean']
+    aggs['category_1'] = ['sum', 'mean']
+    aggs['card_id'] = ['size']
+
+    for col in ['category_2','category_3']:
+        new_merchant_df[col+'_mean'] = new_merchant_df.groupby([col])['purchase_amount'].transform('mean')
+        aggs[col+'_mean'] = ['mean']
+
+    new_merchant_df = new_merchant_df.reset_index().groupby('card_id').agg(aggs)
+
+    # カラム名の変更
+    new_merchant_df.columns = pd.Index([e[0] + "_" + e[1] for e in new_merchant_df.columns.tolist()])
+    new_merchant_df.columns = ['new_'+ c for c in new_merchant_df.columns]
+
+    new_merchant_df['new_purchase_date_diff'] = (new_merchant_df['new_purchase_date_max']-new_merchant_df['new_purchase_date_min']).dt.days
+    new_merchant_df['new_purchase_date_average'] = new_merchant_df['new_purchase_date_diff']/new_merchant_df['new_card_id_size']
+    new_merchant_df['new_purchase_date_uptonow'] = (datetime.datetime.today()-new_merchant_df['new_purchase_date_max']).dt.days
 
     return new_merchant_df
 

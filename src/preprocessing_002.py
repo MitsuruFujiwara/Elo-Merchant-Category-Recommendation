@@ -65,14 +65,15 @@ def historical_transactions(num_rows=None):
 
     # datetime features
     hist_df['purchase_date'] = pd.to_datetime(hist_df['purchase_date'])
-    hist_df['year'] = hist_df['purchase_date'].dt.year.astype(object)
-    hist_df['month'] = hist_df['purchase_date'].dt.month.astype(object)
-    hist_df['day'] = hist_df['purchase_date'].dt.day.astype(object)
-    hist_df['hour'] = hist_df['purchase_date'].dt.hour.astype(object)
+#    hist_df['year'] = hist_df['purchase_date'].dt.year.astype(object)
+#    hist_df['month'] = hist_df['purchase_date'].dt.month.astype(object)
+#    hist_df['day'] = hist_df['purchase_date'].dt.day.astype(object)
+#    hist_df['hour'] = hist_df['purchase_date'].dt.hour.astype(object)
+    hist_df['weekend'] = (hist_df['purchase_date'].dt.weekday >=5).astype(int)
 
     hist_df = hist_df.drop('purchase_date', axis=1)
 
-    hist_df, cols = one_hot_encoder(hist_df, nan_as_category=False)
+#    hist_df, cols = one_hot_encoder(hist_df, nan_as_category=False)
 
     hist_df = hist_df.groupby('card_id').mean()
 

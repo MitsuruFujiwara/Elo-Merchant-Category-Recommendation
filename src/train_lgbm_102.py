@@ -15,7 +15,7 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import KFold, StratifiedKFold
 from pandas.core.common import SettingWithCopyWarning
 
-from preprocessing import train_test, historical_transactions, merchants, new_merchant_transactions
+from preprocessing_002 import train_test, historical_transactions, merchants, new_merchant_transactions
 from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, loadpkl, save2pkl, rmse, submit
 
 ################################################################################

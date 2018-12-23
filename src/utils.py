@@ -10,7 +10,8 @@ from time import time, sleep
 
 NUM_FOLDS = 5
 
-FEATS_EXCLUDED = ['first_active_month', 'target', 'card_id']
+FEATS_EXCLUDED = ['first_active_month', 'target', 'card_id', 'hist_purchase_date_max',
+                  'hist_purchase_date_min', 'hist_card_id_size']
 
 COMPETITION_NAME = 'elo-merchant-category-recommendation'
 

@@ -90,21 +90,28 @@ def historical_transactions(num_rows=None):
 
     aggs['purchase_amount'] = ['sum','max','min','mean','var']
     aggs['installments'] = ['sum','max','min','mean','var']
-#    aggs['purchase_date'] = ['max','min']
+    aggs['purchase_date'] = ['max','min']
     aggs['month_lag'] = ['max','min','mean','var']
     aggs['month_diff'] = ['mean']
     aggs['authorized_flag'] = ['sum', 'mean']
     aggs['weekend'] = ['sum', 'mean']
     aggs['category_1'] = ['sum', 'mean']
-#    aggs['category_2'] = ['sum', 'mean']
-#    aggs['category_3'] = ['sum', 'mean']
-#    aggs['card_id'] = ['size']
+    aggs['card_id'] = ['size']
 
-    hist_df = hist_df.groupby('card_id').agg(aggs)
+    for col in ['category_2','category_3']:
+        hist_df[col+'_mean'] = hist_df.groupby([col])['purchase_amount'].transform('mean')
+        aggs[col+'_mean'] = ['mean']
+
+    hist_df = hist_df.reset_index().groupby('card_id').agg(aggs)
+
 
     # カラム名の変更
     hist_df.columns = pd.Index([e[0] + "_" + e[1] for e in hist_df.columns.tolist()])
     hist_df.columns = ['hist_'+ c for c in hist_df.columns]
+
+    hist_df['hist_purchase_date_diff'] = (hist_df['hist_purchase_date_max']-hist_df['hist_purchase_date_min']).dt.days
+    hist_df['hist_purchase_date_average'] = hist_df['hist_purchase_date_diff']/hist_df['hist_card_id_size']
+    hist_df['hist_purchase_date_uptonow'] = (datetime.datetime.today()-hist_df['hist_purchase_date_max']).dt.days
 
     return hist_df
 

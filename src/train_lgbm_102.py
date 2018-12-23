@@ -24,6 +24,7 @@ from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, loadpkl, save2pkl, rms
 ################################################################################
 
 warnings.simplefilter(action='ignore', category=SettingWithCopyWarning)
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 @contextmanager
 def timer(title):

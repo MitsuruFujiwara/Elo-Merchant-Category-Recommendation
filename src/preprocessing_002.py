@@ -51,16 +51,43 @@ def train_test(num_rows=None):
     # datetime features
     df['month'] = df['first_active_month'].dt.month.fillna(0).astype(int).astype(object)
     df['year'] = df['first_active_month'].dt.year.fillna(0).astype(int).astype(object)
+    df['dayofweek'] = df['first_active_month'].dt.dayofweek.fillna(0).astype(int).astype(object)
+    df['weekofyear'] = df['first_active_month'].dt.weekofyear.fillna(0).astype(int).astype(object)
     df['month_year'] = df['month'].astype(str)+'_'+df['year'].astype(str)
-
-    # features1~3
-    df['feature_1'] = df['feature_1'].astype(object)
-    df['feature_2'] = df['feature_2'].astype(object)
+    df['elapsed_time'] = (datetime.datetime.today() - df['first_active_month']).dt.days
 
     # one hot encoding
     df, cols = one_hot_encoder(df, nan_as_category=False)
 
+    for f in ['feature_1','feature_2','feature_3']:
+        order_label = df.groupby([f])['outliers'].mean()
+        df[f] = df[f].map(order_label)
+
+    df['feature_sum'] = df['feature_1'] + df['feature_2'] + df['feature_3']
+    df['feature_mean'] = df['feature_sum']/3
+
     return df
+
+# preprocessing merchants
+def merchants(num_rows=None):
+    # load csv
+    merchants_df = pd.read_csv('../input/merchants.csv', nrows=num_rows)
+
+    # fillna
+    merchants_df['category_2'].fillna(1.0,inplace=True)
+    merchants_df['category_3'].fillna('A',inplace=True)
+    merchants_df['merchant_id'].fillna('M_ID_00a6ca8a8a',inplace=True)
+
+    # Y/Nのカラムを1-0へ変換
+    merchants_df['authorized_flag'] = merchants_df['authorized_flag'].map({'Y': 1, 'N': 0}).astype(int)
+    merchants_df['category_1'] = merchants_df['category_1'].map({'Y': 1, 'N': 0}).astype(int)
+
+    # datetime features
+    merchants_df['purchase_date'] = pd.to_datetime(merchants_df['purchase_date'])
+
+    # TODO:
+
+    return merchants_df
 
 # preprocessing historical transactions
 def historical_transactions(num_rows=None):
@@ -116,7 +143,6 @@ def historical_transactions(num_rows=None):
 
     hist_df = hist_df.reset_index().groupby('card_id').agg(aggs)
 
-
     # カラム名の変更
     hist_df.columns = pd.Index([e[0] + "_" + e[1] for e in hist_df.columns.tolist()])
     hist_df.columns = ['hist_'+ c for c in hist_df.columns]
@@ -126,27 +152,6 @@ def historical_transactions(num_rows=None):
     hist_df['hist_purchase_date_uptonow'] = (datetime.datetime.today()-hist_df['hist_purchase_date_max']).dt.days
 
     return hist_df
-
-# preprocessing merchants
-def merchants(num_rows=None):
-    # load csv
-    merchants_df = pd.read_csv('../input/merchants.csv', nrows=num_rows)
-
-    # fillna
-    merchants_df['category_2'].fillna(1.0,inplace=True)
-    merchants_df['category_3'].fillna('A',inplace=True)
-    merchants_df['merchant_id'].fillna('M_ID_00a6ca8a8a',inplace=True)
-
-    # Y/Nのカラムを1-0へ変換
-    merchants_df['authorized_flag'] = merchants_df['authorized_flag'].map({'Y': 1, 'N': 0}).astype(int)
-    merchants_df['category_1'] = merchants_df['category_1'].map({'Y': 1, 'N': 0}).astype(int)
-
-    # datetime features
-    merchants_df['purchase_date'] = pd.to_datetime(merchants_df['purchase_date'])
-
-    # TODO:
-
-    return merchants_df
 
 # preprocessing new_merchant_transactions
 def new_merchant_transactions(num_rows=None):
@@ -211,6 +216,22 @@ def new_merchant_transactions(num_rows=None):
     new_merchant_df['new_purchase_date_uptonow'] = (datetime.datetime.today()-new_merchant_df['new_purchase_date_max']).dt.days
 
     return new_merchant_df
+
+# additional features
+def additional_features(df):
+    df['hist_first_buy'] = (df['hist_purchase_date_min'] - df['first_active_month']).dt.days
+    df['new_first_buy'] = (df['new_purchase_date_min'] - df['first_active_month']).dt.days
+
+    date_features=['hist_purchase_date_max','hist_purchase_date_min',
+                   'new_purchase_date_max', 'new_purchase_date_min']
+
+    for f in date_features:
+        df[f] = df[f].astype(np.int64) * 1e-9
+
+    df['card_id_total'] = df['new_card_id_size']+df['hist_card_id_size']
+    df['purchase_amount_total'] = df['new_purchase_amount_sum']+df['hist_purchase_amount_sum']
+
+    return df
 
 if __name__ == '__main__':
     # test

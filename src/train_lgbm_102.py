@@ -15,7 +15,7 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import KFold, StratifiedKFold
 from pandas.core.common import SettingWithCopyWarning
 
-from preprocessing_002 import train_test, historical_transactions, merchants, new_merchant_transactions
+from preprocessing_002 import train_test, historical_transactions, merchants, new_merchant_transactions, additional_features
 from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, loadpkl, save2pkl, rmse, submit
 
 ################################################################################
@@ -157,7 +157,7 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
         train_df[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
 
         # API経由でsubmit
-        submit(submission_file_name, comment='cv: %.6f' % full_rmse)
+        submit(submission_file_name, comment='model102 cv: %.6f' % full_rmse)
 
 def main(debug=False, use_pkl=False):
     num_rows = 10000 if debug else None
@@ -172,6 +172,8 @@ def main(debug=False, use_pkl=False):
 #            df = pd.merge(df, merchants(num_rows), on='card_id', how='outer')
         with timer("new merchants"):
             df = pd.merge(df, new_merchant_transactions(num_rows), on='card_id', how='outer')
+        with timer("additional features"):
+            df = additional_features(df)
         with timer("save pkl"):
             save2pkl('../output/df.pkl', df)
     with timer("Run LightGBM with kfold"):

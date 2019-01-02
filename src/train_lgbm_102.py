@@ -166,10 +166,10 @@ def main(debug=False, use_pkl=False):
     else:
         with timer("train & test"):
             df = train_test(num_rows)
-        with timer("historical transactions"):
-            df = pd.merge(df, historical_transactions(num_rows), on='card_id', how='outer')
 #        with timer("merchants"):
 #            df = pd.merge(df, merchants(num_rows), on='card_id', how='outer')
+        with timer("historical transactions"):
+            df = pd.merge(df, historical_transactions(num_rows), on='card_id', how='outer')
         with timer("new merchants"):
             df = pd.merge(df, new_merchant_transactions(num_rows), on='card_id', how='outer')
         with timer("additional features"):

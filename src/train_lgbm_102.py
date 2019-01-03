@@ -67,9 +67,9 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
 
     # Cross validation model
     if stratified:
-        folds = StratifiedKFold(n_splits= num_folds, shuffle=True, random_state=47)
+        folds = StratifiedKFold(n_splits= num_folds, shuffle=True, random_state=4950)
     else:
-        folds = KFold(n_splits= num_folds, shuffle=True, random_state=47)
+        folds = KFold(n_splits= num_folds, shuffle=True, random_state=4950)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
@@ -99,15 +99,15 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
                 'objective': 'regression',
                 'metric': 'rmse',
                 'learning_rate': 0.01,
-#                'num_leaves': 32,
-#                'colsample_bytree': 0.20461151519044,
+#                'num_leaves': 31,
+#                'colsample_bytree': 0.9,
 #                'subsample': 0.805742797052828,
-#                'max_depth': 10,
+#                'max_depth': -1,
 #                'reg_alpha': 0.196466392224054,
 #                'reg_lambda': 0.045887453950229,
 #                'min_split_gain': 0.247050274075659,
 #                'min_child_weight': 23.9202696807894,
-#                'min_data_in_leaf': 24,
+#                'min_data_in_leaf': 20,
                 'verbose': -1,
                 'seed':int(2**n_fold),
                 'bagging_seed':int(2**n_fold),

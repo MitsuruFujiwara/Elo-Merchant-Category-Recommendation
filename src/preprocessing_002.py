@@ -231,6 +231,9 @@ def historical_transactions(merchants_df, num_rows=None):
 
     for col in ['category_2','category_3']:
         hist_df[col+'_mean'] = hist_df.groupby([col])['purchase_amount'].transform('mean')
+        hist_df[col+'_min'] = hist_df.groupby([col])['purchase_amount'].transform('min')
+        hist_df[col+'_max'] = hist_df.groupby([col])['purchase_amount'].transform('max')
+        hist_df[col+'_sum'] = hist_df.groupby([col])['purchase_amount'].transform('sum')
         aggs[col+'_mean'] = ['mean']
 
     hist_df = hist_df.reset_index().groupby('card_id').agg(aggs)
@@ -242,6 +245,7 @@ def historical_transactions(merchants_df, num_rows=None):
     hist_df['hist_purchase_date_diff'] = (hist_df['hist_purchase_date_max']-hist_df['hist_purchase_date_min']).dt.days
     hist_df['hist_purchase_date_average'] = hist_df['hist_purchase_date_diff']/hist_df['hist_card_id_size']
     hist_df['hist_purchase_date_uptonow'] = (datetime.datetime.today()-hist_df['hist_purchase_date_max']).dt.days
+    hist_df['hist_purchase_date_uptomin'] = (datetime.datetime.today()-hist_df['hist_purchase_date_min']).dt.days
 
     # memory usage削減
     hist_df = reduce_mem_usage(hist_df)
@@ -315,6 +319,9 @@ def new_merchant_transactions(merchants_df, num_rows=None):
 
     for col in ['category_2','category_3']:
         new_merchant_df[col+'_mean'] = new_merchant_df.groupby([col])['purchase_amount'].transform('mean')
+        new_merchant_df[col+'_min'] = new_merchant_df.groupby([col])['purchase_amount'].transform('min')
+        new_merchant_df[col+'_max'] = new_merchant_df.groupby([col])['purchase_amount'].transform('max')
+        new_merchant_df[col+'_sum'] = new_merchant_df.groupby([col])['purchase_amount'].transform('sum')
         aggs[col+'_mean'] = ['mean']
 
     new_merchant_df = new_merchant_df.reset_index().groupby('card_id').agg(aggs)
@@ -326,6 +333,7 @@ def new_merchant_transactions(merchants_df, num_rows=None):
     new_merchant_df['new_purchase_date_diff'] = (new_merchant_df['new_purchase_date_max']-new_merchant_df['new_purchase_date_min']).dt.days
     new_merchant_df['new_purchase_date_average'] = new_merchant_df['new_purchase_date_diff']/new_merchant_df['new_card_id_size']
     new_merchant_df['new_purchase_date_uptonow'] = (datetime.datetime.today()-new_merchant_df['new_purchase_date_max']).dt.days
+    new_merchant_df['new_purchase_date_uptomin'] = (datetime.datetime.today()-new_merchant_df['new_purchase_date_min']).dt.days
 
     # memory usage削減
     new_merchant_df = reduce_mem_usage(new_merchant_df)
@@ -335,7 +343,9 @@ def new_merchant_transactions(merchants_df, num_rows=None):
 # additional features
 def additional_features(df):
     df['hist_first_buy'] = (df['hist_purchase_date_min'] - df['first_active_month']).dt.days
+    df['hist_last_buy'] = (df['hist_purchase_date_max'] - df['first_active_month']).dt.days
     df['new_first_buy'] = (df['new_purchase_date_min'] - df['first_active_month']).dt.days
+    df['new_last_buy'] = (df['new_purchase_date_max'] - df['first_active_month']).dt.days
 
     date_features=['hist_purchase_date_max','hist_purchase_date_min',
                    'new_purchase_date_max', 'new_purchase_date_min']
@@ -345,6 +355,9 @@ def additional_features(df):
 
     df['card_id_total'] = df['new_card_id_size']+df['hist_card_id_size']
     df['purchase_amount_total'] = df['new_purchase_amount_sum']+df['hist_purchase_amount_sum']
+    df['purchase_amount_mean'] = df['new_purchase_amount_mean']+df['hist_purchase_amount_mean']
+    df['purchase_amount_max'] = df['new_purchase_amount_max']+df['hist_purchase_amount_max']
+    df['purchase_amount_min'] = df['new_purchase_amount_min']+df['hist_purchase_amount_min']
 
     return df
 

@@ -67,6 +67,7 @@ def train_test(num_rows=None):
     df['feature_mean'] = df['feature_sum']/3
     df['feature_max'] = df[['feature_1', 'feature_2', 'feature_3']].max(axis=1)
     df['feature_min'] = df[['feature_1', 'feature_2', 'feature_3']].min(axis=1)
+    df['feature_std'] = df[['feature_1', 'feature_2', 'feature_3']].std(axis=1)
 
     return df
 
@@ -79,12 +80,21 @@ def merchants(num_rows=None):
     merchants_df['category_1'] = merchants_df['category_1'].map({'Y': 1, 'N': 0}).astype(int)
     merchants_df['category_4'] = merchants_df['category_4'].map({'Y': 1, 'N': 0}).astype(int)
 
+    # additional features
+    merchants_df['avg_numerical'] = merchants_df[['numerical_1','numerical_2']].mean(axis=1)
+    merchants_df['avg_sales'] = merchants_df[['avg_sales_lag3','avg_sales_lag6','avg_sales_lag12']].mean(axis=1)
+    merchants_df['avg_purchases'] = merchants_df[['avg_purchases_lag3','avg_purchases_lag6','avg_purchases_lag12']].mean(axis=1)
+    merchants_df['avg_active_months'] = merchants_df[['active_months_lag3','active_months_lag6','active_months_lag12']].mean(axis=1)
+    merchants_df['max_sales'] = merchants_df[['avg_sales_lag3','avg_sales_lag6','avg_sales_lag12']].max(axis=1)
+    merchants_df['max_purchases'] = merchants_df[['avg_purchases_lag3','avg_purchases_lag6','avg_purchases_lag12']].max(axis=1)
+    merchants_df['max_active_months'] = merchants_df[['active_months_lag3','active_months_lag6','active_months_lag12']].max(axis=1)
+    merchants_df['min_sales'] = merchants_df[['avg_sales_lag3','avg_sales_lag6','avg_sales_lag12']].min(axis=1)
+    merchants_df['min_purchases'] = merchants_df[['avg_purchases_lag3','avg_purchases_lag6','avg_purchases_lag12']].min(axis=1)
+    merchants_df['min_active_months'] = merchants_df[['active_months_lag3','active_months_lag6','active_months_lag12']].min(axis=1)
+    merchants_df['sum_category'] = merchants_df[['category_1','category_2','category_4']].sum(axis=1)
+
     # fillna
     merchants_df['category_2'] = merchants_df['category_2'].fillna(-1).astype(int).astype(object)
-
-    # additional features
-#    merchants_df['avg_sales'] =
-#    merchants_df['avg_purchases'] =
 
     # memory usage削減
     merchants_df = reduce_mem_usage(merchants_df)
@@ -130,6 +140,17 @@ def merchants(num_rows=None):
     aggs['category_2_3'] = ['mean','sum']
     aggs['category_2_4'] = ['mean','sum']
     aggs['category_2_5'] = ['mean','sum']
+    aggs['avg_numerical'] = ['mean','sum','max','min','std']
+    aggs['avg_sales'] = ['mean','sum','max','min','std']
+    aggs['avg_purchases'] = ['mean','sum','max','min','std']
+    aggs['avg_active_months'] = ['mean','sum','max','min','std']
+    aggs['max_sales'] = ['mean','sum','max','min','std']
+    aggs['max_purchases'] = ['mean','sum','max','min','std']
+    aggs['max_active_months'] = ['mean','sum','max','min','std']
+    aggs['min_sales'] = ['mean','sum','max','min','std']
+    aggs['min_purchases'] = ['mean','sum','max','min','std']
+    aggs['min_active_months'] = ['mean','sum','max','min','std']
+    aggs['sum_category'] = ['mean','sum']
 
     merchants_df = merchants_df.reset_index().groupby('merchant_id').agg(aggs)
 
@@ -151,7 +172,8 @@ def historical_transactions(merchants_df, num_rows=None):
     hist_df['category_2'].fillna(1.0,inplace=True)
     hist_df['category_3'].fillna('A',inplace=True)
     hist_df['merchant_id'].fillna('M_ID_00a6ca8a8a',inplace=True)
-    hist_df['installments'].replace(-1, np.nan,inplace=True).replace(999, np.nan,inplace=True)
+    hist_df['installments'].replace(-1, np.nan,inplace=True)
+    hist_df['installments'].replace(999, np.nan,inplace=True)
 
     # Y/Nのカラムを1-0へ変換
     hist_df['authorized_flag'] = hist_df['authorized_flag'].map({'Y': 1, 'N': 0}).astype(int)
@@ -235,7 +257,8 @@ def new_merchant_transactions(merchants_df, num_rows=None):
     new_merchant_df['category_2'].fillna(1.0,inplace=True)
     new_merchant_df['category_3'].fillna('A',inplace=True)
     new_merchant_df['merchant_id'].fillna('M_ID_00a6ca8a8a',inplace=True)
-    new_merchant_df['installments'].replace(-1, np.nan).replace(999, np.nan)
+    new_merchant_df['installments'].replace(-1, np.nan,inplace=True)
+    new_merchant_df['installments'].replace(999, np.nan,inplace=True)
 
     # Y/Nのカラムを1-0へ変換
     new_merchant_df['authorized_flag'] = new_merchant_df['authorized_flag'].map({'Y': 1, 'N': 0}).astype(int)

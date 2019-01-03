@@ -65,6 +65,8 @@ def train_test(num_rows=None):
 
     df['feature_sum'] = df['feature_1'] + df['feature_2'] + df['feature_3']
     df['feature_mean'] = df['feature_sum']/3
+    df['feature_max'] = df[['feature_1', 'feature_2', 'feature_3']].max(axis=1)
+    df['feature_min'] = df[['feature_1', 'feature_2', 'feature_3']].min(axis=1)
 
     return df
 
@@ -79,6 +81,10 @@ def merchants(num_rows=None):
 
     # fillna
     merchants_df['category_2'] = merchants_df['category_2'].fillna(-1).astype(int).astype(object)
+
+    # additional features
+#    merchants_df['avg_sales'] =
+#    merchants_df['avg_purchases'] =
 
     # memory usage削減
     merchants_df = reduce_mem_usage(merchants_df)
@@ -145,6 +151,7 @@ def historical_transactions(merchants_df, num_rows=None):
     hist_df['category_2'].fillna(1.0,inplace=True)
     hist_df['category_3'].fillna('A',inplace=True)
     hist_df['merchant_id'].fillna('M_ID_00a6ca8a8a',inplace=True)
+    hist_df['installments'].replace(-1, np.nan,inplace=True).replace(999, np.nan,inplace=True)
 
     # Y/Nのカラムを1-0へ変換
     hist_df['authorized_flag'] = hist_df['authorized_flag'].map({'Y': 1, 'N': 0}).astype(int)
@@ -159,6 +166,9 @@ def historical_transactions(merchants_df, num_rows=None):
     hist_df['weekofyear'] = hist_df['purchase_date'].dt.weekofyear
     hist_df['weekday'] = hist_df['purchase_date'].dt.weekday
     hist_df['weekend'] = (hist_df['purchase_date'].dt.weekday >=5).astype(int)
+
+    # additional features
+    hist_df['price'] = hist_df['purchase_amount'] / hist_df['installments']
 
     #ブラジルの休日
     cal = Brazil()
@@ -195,6 +205,7 @@ def historical_transactions(merchants_df, num_rows=None):
     aggs['category_1'] = ['sum', 'mean']
     aggs['card_id'] = ['size']
     aggs['is_holiday'] = ['sum', 'mean']
+    aggs['price'] = ['sum','mean','max','min','std']
 
     for col in ['category_2','category_3']:
         hist_df[col+'_mean'] = hist_df.groupby([col])['purchase_amount'].transform('mean')
@@ -224,6 +235,7 @@ def new_merchant_transactions(merchants_df, num_rows=None):
     new_merchant_df['category_2'].fillna(1.0,inplace=True)
     new_merchant_df['category_3'].fillna('A',inplace=True)
     new_merchant_df['merchant_id'].fillna('M_ID_00a6ca8a8a',inplace=True)
+    new_merchant_df['installments'].replace(-1, np.nan).replace(999, np.nan)
 
     # Y/Nのカラムを1-0へ変換
     new_merchant_df['authorized_flag'] = new_merchant_df['authorized_flag'].map({'Y': 1, 'N': 0}).astype(int)
@@ -238,6 +250,9 @@ def new_merchant_transactions(merchants_df, num_rows=None):
     new_merchant_df['weekofyear'] = new_merchant_df['purchase_date'].dt.weekofyear
     new_merchant_df['weekday'] = new_merchant_df['purchase_date'].dt.weekday
     new_merchant_df['weekend'] = (new_merchant_df['purchase_date'].dt.weekday >=5).astype(int)
+
+    # additional features
+    new_merchant_df['price'] = new_merchant_df['purchase_amount'] / new_merchant_df['installments']
 
     #ブラジルの休日
     cal = Brazil()
@@ -273,6 +288,7 @@ def new_merchant_transactions(merchants_df, num_rows=None):
     aggs['category_1'] = ['sum', 'mean']
     aggs['card_id'] = ['size']
     aggs['is_holiday'] = ['sum', 'mean']
+    aggs['price'] = ['sum','mean','max','min','std']
 
     for col in ['category_2','category_3']:
         new_merchant_df[col+'_mean'] = new_merchant_df.groupby([col])['purchase_amount'].transform('mean')

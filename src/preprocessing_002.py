@@ -10,7 +10,7 @@ import time
 from contextlib import contextmanager
 from workalendar.america import Brazil
 
-from utils import one_hot_encoder
+from utils import one_hot_encoder, reduce_mem_usage
 
 ################################################################################
 # 提供データを読み込み、データに前処理を施し、モデルに入力が可能な状態でファイル出力するモジュール。
@@ -71,28 +71,75 @@ def train_test(num_rows=None):
 # preprocessing merchants
 def merchants(num_rows=None):
     # load csv
-    merchants_df = pd.read_csv('../input/merchants.csv', nrows=num_rows)
-
-    # fillna
-    merchants_df['category_2'].fillna(1.0,inplace=True)
-    merchants_df['category_3'].fillna('A',inplace=True)
-    merchants_df['merchant_id'].fillna('M_ID_00a6ca8a8a',inplace=True)
+    merchants_df = pd.read_csv('../input/merchants.csv', nrows=num_rows, index_col=['merchant_id'])
 
     # Y/Nのカラムを1-0へ変換
-    merchants_df['authorized_flag'] = merchants_df['authorized_flag'].map({'Y': 1, 'N': 0}).astype(int)
     merchants_df['category_1'] = merchants_df['category_1'].map({'Y': 1, 'N': 0}).astype(int)
+    merchants_df['category_4'] = merchants_df['category_4'].map({'Y': 1, 'N': 0}).astype(int)
 
-    # datetime features
-    merchants_df['purchase_date'] = pd.to_datetime(merchants_df['purchase_date'])
+    # fillna
+    merchants_df['category_2'] = merchants_df['category_2'].fillna(-1).astype(int).astype(object)
 
-    # TODO:
+    # memory usage削減
+    merchants_df = reduce_mem_usage(merchants_df)
+
+    # one hot encoding
+    merchants_df, cols = one_hot_encoder(merchants_df, nan_as_category=False)
+
+    # unique columns
+    col_unique =['merchant_group_id', 'merchant_category_id', 'subsector_id',
+                 'city_id', 'state_id']
+
+    # aggregation
+    aggs = {}
+    for col in col_unique:
+        aggs[col] = ['nunique']
+
+    aggs['numerical_1'] = ['mean','sum']
+    aggs['numerical_2'] = ['mean','sum']
+    aggs['avg_sales_lag3'] = ['mean','sum']
+    aggs['avg_sales_lag6'] = ['mean','sum']
+    aggs['avg_sales_lag12'] = ['mean','sum']
+    aggs['avg_purchases_lag3'] = ['mean','sum']
+    aggs['avg_purchases_lag6'] = ['mean','sum']
+    aggs['avg_purchases_lag12'] = ['mean','sum']
+    aggs['active_months_lag3'] = ['mean','sum']
+    aggs['active_months_lag6'] = ['mean','sum']
+    aggs['active_months_lag12'] = ['mean','sum']
+    aggs['category_1'] = ['mean','sum']
+    aggs['category_4'] = ['mean','sum']
+    aggs['most_recent_sales_range_A'] = ['mean','sum']
+    aggs['most_recent_sales_range_B'] = ['mean','sum']
+    aggs['most_recent_sales_range_C'] = ['mean','sum']
+    aggs['most_recent_sales_range_D'] = ['mean','sum']
+    aggs['most_recent_sales_range_E'] = ['mean','sum']
+    aggs['most_recent_purchases_range_A'] = ['mean','sum']
+    aggs['most_recent_purchases_range_B'] = ['mean','sum']
+    aggs['most_recent_purchases_range_C'] = ['mean','sum']
+    aggs['most_recent_purchases_range_D'] = ['mean','sum']
+    aggs['most_recent_purchases_range_E'] = ['mean','sum']
+    aggs['category_2_-1'] = ['mean','sum']
+    aggs['category_2_1'] = ['mean','sum']
+    aggs['category_2_2'] = ['mean','sum']
+    aggs['category_2_3'] = ['mean','sum']
+    aggs['category_2_4'] = ['mean','sum']
+    aggs['category_2_5'] = ['mean','sum']
+
+    merchants_df = merchants_df.reset_index().groupby('merchant_id').agg(aggs)
+
+    # カラム名の変更
+    merchants_df.columns = pd.Index([e[0] + "_" + e[1] for e in merchants_df.columns.tolist()])
+    merchants_df.columns = ['mer_'+ c for c in merchants_df.columns]
+
+    # memory usage削減
+    merchants_df = reduce_mem_usage(merchants_df)
 
     return merchants_df
 
 # preprocessing historical transactions
-def historical_transactions(num_rows=None):
+def historical_transactions(merchants_df, num_rows=None):
     # load csv
-    hist_df = pd.read_csv('../input/historical_transactions.csv', nrows=num_rows, index_col=['card_id'])
+    hist_df = pd.read_csv('../input/historical_transactions.csv', nrows=num_rows)
 
     # fillna
     hist_df['category_2'].fillna(1.0,inplace=True)
@@ -120,11 +167,23 @@ def historical_transactions(num_rows=None):
     hist_df['month_diff'] = ((datetime.datetime.today() - hist_df['purchase_date']).dt.days)//30
     hist_df['month_diff'] += hist_df['month_lag']
 
+    # merge merchants_df
+    hist_df = pd.merge(hist_df, merchants_df, on='merchant_id', how='outer')
+    merchants_cols = merchants_df.columns.tolist()
+    del merchants_df
+    gc.collect()
+
+    # memory usage削減
+    hist_df = reduce_mem_usage(hist_df)
+
     col_unique =['month', 'hour', 'weekofyear', 'weekday', 'year', 'day',
                  'subsector_id', 'merchant_id', 'merchant_category_id']
     aggs = {}
     for col in col_unique:
         aggs[col] = ['nunique']
+
+    for col in merchants_cols:
+        aggs[col] = ['sum', 'mean']
 
     aggs['purchase_amount'] = ['sum','max','min','mean','var', 'std', 'skew']
     aggs['installments'] = ['sum','max','min','mean','var', 'std', 'skew']
@@ -151,10 +210,13 @@ def historical_transactions(num_rows=None):
     hist_df['hist_purchase_date_average'] = hist_df['hist_purchase_date_diff']/hist_df['hist_card_id_size']
     hist_df['hist_purchase_date_uptonow'] = (datetime.datetime.today()-hist_df['hist_purchase_date_max']).dt.days
 
+    # memory usage削減
+    hist_df = reduce_mem_usage(hist_df)
+
     return hist_df
 
 # preprocessing new_merchant_transactions
-def new_merchant_transactions(num_rows=None):
+def new_merchant_transactions(merchants_df, num_rows=None):
     # load csv
     new_merchant_df = pd.read_csv('../input/new_merchant_transactions.csv', nrows=num_rows)
 
@@ -184,11 +246,22 @@ def new_merchant_transactions(num_rows=None):
     new_merchant_df['month_diff'] = ((datetime.datetime.today() - new_merchant_df['purchase_date']).dt.days)//30
     new_merchant_df['month_diff'] += new_merchant_df['month_lag']
 
+    # merge merchants df
+    merchants_cols = merchants_df.columns.tolist()
+    new_merchant_df = pd.merge(new_merchant_df, merchants_df, on='merchant_id', how='outer')
+    del merchants_df
+    gc.collect()
+
+    # memory usage削減
+    new_merchant_df = reduce_mem_usage(new_merchant_df)
+
     col_unique =['month', 'hour', 'weekofyear', 'weekday', 'year', 'day',
                  'subsector_id', 'merchant_id', 'merchant_category_id']
     aggs = {}
     for col in col_unique:
         aggs[col] = ['nunique']
+    for col in merchants_cols:
+        aggs[col] = ['sum', 'mean']
 
     aggs['purchase_amount'] = ['sum','max','min','mean','var','std','skew']
     aggs['installments'] = ['sum','max','min','mean','var','std','skew']
@@ -214,6 +287,9 @@ def new_merchant_transactions(num_rows=None):
     new_merchant_df['new_purchase_date_diff'] = (new_merchant_df['new_purchase_date_max']-new_merchant_df['new_purchase_date_min']).dt.days
     new_merchant_df['new_purchase_date_average'] = new_merchant_df['new_purchase_date_diff']/new_merchant_df['new_card_id_size']
     new_merchant_df['new_purchase_date_uptonow'] = (datetime.datetime.today()-new_merchant_df['new_purchase_date_max']).dt.days
+
+    # memory usage削減
+    new_merchant_df = reduce_mem_usage(new_merchant_df)
 
     return new_merchant_df
 

@@ -196,6 +196,24 @@ def historical_transactions(merchants_df, num_rows=None):
     cal = Brazil()
     hist_df['is_holiday'] = hist_df['purchase_date'].dt.date.apply(cal.is_holiday).astype(int)
 
+    # 購入日からイベント日までの経過日数
+    #Christmas : December 25 2017
+    hist_df['Christmas_Day_2017']=(pd.to_datetime('2017-12-25')-hist_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
+    #Mothers Day: May 14 2017
+    hist_df['Mothers_Day_2017']=(pd.to_datetime('2017-06-04')-hist_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
+    #fathers day: August 13 2017
+    hist_df['fathers_day_2017']=(pd.to_datetime('2017-08-13')-hist_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
+    #Childrens day: October 12 2017
+    hist_df['Children_day_2017']=(pd.to_datetime('2017-10-12')-hist_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
+    #Valentine's Day : 12th June, 2017
+    hist_df['Valentine_Day_2017']=(pd.to_datetime('2017-06-12')-hist_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
+    #Black Friday : 24th November 2017
+    hist_df['Black_Friday_2017']=(pd.to_datetime('2017-11-24') - hist_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
+
+    #2018
+    #Mothers Day: May 13 2018
+    hist_df['Mothers_Day_2018']=(pd.to_datetime('2018-05-13')-hist_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
+
     hist_df['month_diff'] = ((datetime.datetime.today() - hist_df['purchase_date']).dt.days)//30
     hist_df['month_diff'] += hist_df['month_lag']
 
@@ -221,13 +239,20 @@ def historical_transactions(merchants_df, num_rows=None):
     aggs['installments'] = ['sum','max','min','mean','var', 'std', 'skew']
     aggs['purchase_date'] = ['max','min']
     aggs['month_lag'] = ['max','min','mean','var', 'std', 'skew']
-    aggs['month_diff'] = ['mean']
+    aggs['month_diff'] = ['max','min','mean','var', 'std', 'skew']
     aggs['authorized_flag'] = ['sum', 'mean']
     aggs['weekend'] = ['sum', 'mean']
     aggs['category_1'] = ['sum', 'mean']
     aggs['card_id'] = ['size']
     aggs['is_holiday'] = ['sum', 'mean']
     aggs['price'] = ['sum','mean','max','min','std']
+    aggs['Christmas_Day_2017'] = ['mean']
+    aggs['Mothers_Day_2017'] = ['mean']
+    aggs['fathers_day_2017'] = ['mean']
+    aggs['Children_day_2017'] = ['mean']
+    aggs['Valentine_Day_2017'] = ['mean']
+    aggs['Black_Friday_2017'] = ['mean']
+    aggs['Mothers_Day_2018'] = ['mean']
 
     for col in ['category_2','category_3']:
         hist_df[col+'_mean'] = hist_df.groupby([col])['purchase_amount'].transform('mean')
@@ -285,6 +310,24 @@ def new_merchant_transactions(merchants_df, num_rows=None):
     cal = Brazil()
     new_merchant_df['is_holiday'] = new_merchant_df['purchase_date'].dt.date.apply(cal.is_holiday).astype(int)
 
+    # 購入日からイベント日までの経過日数
+    #Christmas : December 25 2017
+    new_merchant_df['Christmas_Day_2017']=(pd.to_datetime('2017-12-25')-new_merchant_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
+    #Mothers Day: May 14 2017
+    new_merchant_df['Mothers_Day_2017']=(pd.to_datetime('2017-06-04')-new_merchant_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
+    #fathers day: August 13 2017
+    new_merchant_df['fathers_day_2017']=(pd.to_datetime('2017-08-13')-new_merchant_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
+    #Childrens day: October 12 2017
+    new_merchant_df['Children_day_2017']=(pd.to_datetime('2017-10-12')-new_merchant_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
+    #Valentine's Day : 12th June, 2017
+    new_merchant_df['Valentine_Day_2017']=(pd.to_datetime('2017-06-12')-new_merchant_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
+    #Black Friday : 24th November 2017
+    new_merchant_df['Black_Friday_2017']=(pd.to_datetime('2017-11-24') - new_merchant_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
+
+    #2018
+    #Mothers Day: May 13 2018
+    new_merchant_df['Mothers_Day_2018']=(pd.to_datetime('2018-05-13')-new_merchant_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
+
     new_merchant_df['month_diff'] = ((datetime.datetime.today() - new_merchant_df['purchase_date']).dt.days)//30
     new_merchant_df['month_diff'] += new_merchant_df['month_lag']
 
@@ -309,13 +352,20 @@ def new_merchant_transactions(merchants_df, num_rows=None):
     aggs['installments'] = ['sum','max','min','mean','var','std','skew']
     aggs['purchase_date'] = ['max','min']
     aggs['month_lag'] = ['max','min','mean','var','std','skew']
-    aggs['month_diff'] = ['mean']
+    aggs['month_diff'] = ['max','min','mean','var','std','skew']
     aggs['authorized_flag'] = ['sum', 'mean']
     aggs['weekend'] = ['sum', 'mean']
     aggs['category_1'] = ['sum', 'mean']
     aggs['card_id'] = ['size']
     aggs['is_holiday'] = ['sum', 'mean']
     aggs['price'] = ['sum','mean','max','min','std']
+    aggs['Christmas_Day_2017'] = ['mean']
+    aggs['Mothers_Day_2017'] = ['mean']
+    aggs['fathers_day_2017'] = ['mean']
+    aggs['Children_day_2017'] = ['mean']
+    aggs['Valentine_Day_2017'] = ['mean']
+    aggs['Black_Friday_2017'] = ['mean']
+    aggs['Mothers_Day_2018'] = ['mean']
 
     for col in ['category_2','category_3']:
         new_merchant_df[col+'_mean'] = new_merchant_df.groupby([col])['purchase_amount'].transform('mean')

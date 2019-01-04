@@ -11,7 +11,7 @@ import time
 import warnings
 
 from contextlib import contextmanager
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import KFold, StratifiedKFold
 from pandas.core.common import SettingWithCopyWarning
 
@@ -57,10 +57,6 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
     del df
     gc.collect()
 
-    # save pkl
-    save2pkl('../output/train_df.pkl', train_df)
-    save2pkl('../output/test_df.pkl', test_df)
-
     # Cross validation model
     if stratified:
         folds = StratifiedKFold(n_splits= num_folds, shuffle=True, random_state=47)
@@ -75,8 +71,8 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
 
     # k-fold
     for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], train_df['outliers'])):
-        train_x, train_y = train_df[feats].iloc[train_idx], train_df['target'].iloc[train_idx]
-        valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['target'].iloc[valid_idx]
+        train_x, train_y = train_df[feats].iloc[train_idx], train_df['outliers'].iloc[train_idx]
+        valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['outliers'].iloc[valid_idx]
 
         # set data structure
         lgb_train = lgb.Dataset(train_x,
@@ -92,8 +88,8 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
 #                'gpu_use_dp':True,
                 'task': 'train',
                 'boosting': 'gbdt',
-                'objective': 'regression',
-                'metric': 'rmse',
+                'objective': 'binary',
+                'metric': 'auc',
                 'learning_rate': 0.01,
 #                'num_leaves': 32,
 #                'colsample_bytree': 0.20461151519044,
@@ -110,7 +106,7 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
                 'drop_seed':int(2**n_fold)
                 }
 
-        reg = lgb.train(
+        clf = lgb.train(
                         params,
                         lgb_train,
                         valid_sets=[lgb_train, lgb_test],
@@ -121,42 +117,41 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
                         )
 
         # save model
-        reg.save_model('../output/lgbm_'+str(n_fold)+'.txt')
+        clf.save_model('../output/lgbm_'+str(n_fold)+'_binary.txt')
 
-        oof_preds[valid_idx] = reg.predict(valid_x, num_iteration=reg.best_iteration)
-        sub_preds += reg.predict(test_df[feats], num_iteration=reg.best_iteration) / folds.n_splits
+        oof_preds[valid_idx] = clf.predict(valid_x, num_iteration=clf.best_iteration)
+        sub_preds += clf.predict(test_df[feats], num_iteration=clf.best_iteration) / folds.n_splits
 
         fold_importance_df = pd.DataFrame()
         fold_importance_df["feature"] = feats
-        fold_importance_df["importance"] = np.log1p(reg.feature_importance(importance_type='gain', iteration=reg.best_iteration))
+        fold_importance_df["importance"] = np.log1p(clf.feature_importance(importance_type='gain', iteration=clf.best_iteration))
         fold_importance_df["fold"] = n_fold + 1
         feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
-        print('Fold %2d RMSE : %.6f' % (n_fold + 1, rmse(valid_y, oof_preds[valid_idx])))
-        del reg, train_x, train_y, valid_x, valid_y
+        print('Fold %2d AUC : %.6f' % (n_fold + 1, roc_auc_score(valid_y, oof_preds[valid_idx])))
+        del clf, train_x, train_y, valid_x, valid_y
         gc.collect()
 
     # Full RMSEスコアの表示&LINE通知
-    full_rmse = rmse(train_df['target'], oof_preds)
-    line_notify('Full RMSE score %.6f' % full_rmse)
+    full_auc = roc_auc_score(train_df['outliers'], oof_preds)
+    line_notify('Full AUC score %.6f' % full_auc)
 
     # display importances
     display_importances(feature_importance_df,
-                        '../output/lgbm_importances.png',
-                        '../output/feature_importance_lgbm.csv')
+                        '../output/lgbm_importances_binary.png',
+                        '../output/feature_importance_lgbm_binary.csv')
 
     if not debug:
         # 提出データの予測値を保存
-        test_df.loc[:,'target'] = sub_preds
-        test_df = test_df.reset_index()
-        test_df[['card_id', 'target']].to_csv(submission_file_name, index=False)
+        test_df.loc[:,'Outlier_Likelyhood'] = sub_preds
+        q_test = test_df['Outlier_Likelyhood'].quantile(1.0-0.0106)
+        test_df.loc[:,'outliers']=test_df['Outlier_Likelyhood'].apply(lambda x: 1 if x > q_test else 0)
 
         # out of foldの予測値を保存
-        train_df.loc[:,'OOF_PRED'] = oof_preds
-        train_df = train_df.reset_index()
-        train_df[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
+        train_df.loc[:,'Outlier_Likelyhood'] = oof_preds
 
-        # API経由でsubmit
-        submit(submission_file_name, comment='model102 cv: %.6f' % full_rmse)
+        # save pkl
+        save2pkl('../output/train_df.pkl', train_df)
+        save2pkl('../output/test_df.pkl', test_df)
 
 def main(debug=False, use_pkl=False):
     num_rows = 10000 if debug else None
@@ -182,7 +177,7 @@ def main(debug=False, use_pkl=False):
         kfold_lightgbm(df, num_folds=NUM_FOLDS, stratified=True, debug=debug)
 
 if __name__ == "__main__":
-    submission_file_name = "../output/submission.csv"
-    oof_file_name = "../output/oof_lgbm.csv"
+    submission_file_name = "../output/submission_binary.csv"
+    oof_file_name = "../output/oof_lgbm_binary.csv"
     with timer("Full model run"):
-        main(debug=False,use_pkl=False)
+        main(debug=False,use_pkl=True)

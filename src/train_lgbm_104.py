@@ -18,8 +18,7 @@ from preprocessing_002 import train_test, historical_transactions, merchants, ne
 from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, loadpkl, save2pkl, rmse, submit
 
 ################################################################################
-# Preprocessingで作成したファイルを読み込み、モデルを学習するモジュール。
-# 学習済みモデルや特徴量、クロスバリデーションの評価結果を出力する関数も定義してください。
+# Model For Outliers Classification
 ################################################################################
 
 warnings.simplefilter(action='ignore', category=SettingWithCopyWarning)
@@ -47,22 +46,15 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
     plt.savefig(outputpath)
 
 # LightGBM GBDT with KFold or Stratified KFold
-def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
-
-    # Divide in training/validation and test data
-    train_df = df[df['target'].notnull()]
-    test_df = df[df['target'].isnull()]
+def kfold_lightgbm(train, test, num_folds, stratified = False, debug= False):
 
     # only use non-outlier
-#    train_df = train_df[train_df['outliers']==0]
+    train_df = train[train['outliers']==0]
+    test_df = test[test['outliers']==0]
 
     print("Starting LightGBM. Train shape: {}, test shape: {}".format(train_df.shape, test_df.shape))
-    del df
+    del train
     gc.collect()
-
-    # save pkl
-    save2pkl('../output/train_df.pkl', train_df)
-    save2pkl('../output/test_df.pkl', test_df)
 
     # Cross validation model
     if stratified:
@@ -77,7 +69,7 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
 
     # k-fold
-    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], train_df['outliers'])):
+    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], train_df['target'])):
         train_x, train_y = train_df[feats].iloc[train_idx], train_df['target'].iloc[train_idx]
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['target'].iloc[valid_idx]
 
@@ -155,22 +147,16 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
 
     if not debug:
         # 提出データの予測値を保存
-        test_df.loc[:,'target'] = sub_preds
-        test_df = test_df.reset_index()
-        test_df[['card_id', 'target']].to_csv(submission_file_name, index=False)
+        test.loc[test['outliers']==0,'target'] = sub_preds
 
-        # out of foldの予測値を保存
-        train_df.loc[:,'OOF_PRED'] = oof_preds
-        train_df = train_df.reset_index()
-        train_df[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
-
-        # API経由でsubmit
-        submit(submission_file_name, comment='model102 cv: %.6f' % full_rmse)
+        # save pkl
+        save2pkl('../output/test_df.pkl', test)
 
 def main(debug=False, use_pkl=False):
     num_rows = 10000 if debug else None
     if use_pkl:
-        df = loadpkl('../output/df.pkl')
+        train_df = loadpkl('../output/train_df.pkl')
+        test_df = loadpkl('../output/test_df.pkl')
     else:
         with timer("train & test"):
             df = train_test(num_rows)
@@ -187,11 +173,10 @@ def main(debug=False, use_pkl=False):
         with timer("save pkl"):
             save2pkl('../output/df.pkl', df)
     with timer("Run LightGBM with kfold"):
-        print("df shape:", df.shape)
-        kfold_lightgbm(df, num_folds=NUM_FOLDS, stratified=True, debug=debug)
+        kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, stratified=False, debug=debug)
 
 if __name__ == "__main__":
     submission_file_name = "../output/submission.csv"
     oof_file_name = "../output/oof_lgbm.csv"
     with timer("Full model run"):
-        main(debug=False,use_pkl=False)
+        main(debug=False,use_pkl=True)

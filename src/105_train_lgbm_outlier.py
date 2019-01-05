@@ -53,8 +53,6 @@ def kfold_lightgbm(train, test, num_folds, stratified = False, debug= False):
     test_df = test[test['outliers']==1]
 
     print("Starting LightGBM. Train shape: {}, test shape: {}".format(train_df.shape, test_df.shape))
-    del train
-    gc.collect()
 
     # Cross validation model
     if stratified:
@@ -122,7 +120,7 @@ def kfold_lightgbm(train, test, num_folds, stratified = False, debug= False):
                         )
 
         # save model
-        reg.save_model('../output/lgbm_'+str(n_fold)+'.txt')
+        reg.save_model('../output/lgbm_'+str(n_fold)+'_outlier.txt')
 
         oof_preds[valid_idx] = reg.predict(valid_x, num_iteration=reg.best_iteration)
         sub_preds += reg.predict(test_df[feats], num_iteration=reg.best_iteration) / folds.n_splits
@@ -142,8 +140,8 @@ def kfold_lightgbm(train, test, num_folds, stratified = False, debug= False):
 
     # display importances
     display_importances(feature_importance_df,
-                        '../output/lgbm_importances.png',
-                        '../output/feature_importance_lgbm.csv')
+                        '../output/lgbm_importances_outlier.png',
+                        '../output/feature_importance_lgbm_outlier.csv')
 
     if not debug:
         # 提出データの予測値を保存
@@ -151,9 +149,18 @@ def kfold_lightgbm(train, test, num_folds, stratified = False, debug= False):
         test = test.reset_index()
         test[['card_id', 'target']].to_csv(submission_file_name, index=False)
 
+        # out of foldの予測値を保存
+        train.loc[train['outliers']==1,'OOF_PRED'] = oof_preds
+        train = train.reset_index()
+        train[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
+
+        # save pkl
+        save2pkl('../output/train_df.pkl', train)
+        save2pkl('../output/test_df.pkl', test)
+
         # API経由でsubmit
         submit(submission_file_name, comment='model105 cv: %.6f' % full_rmse)
-
+        
 def main(debug=False, use_pkl=False):
     num_rows = 10000 if debug else None
     if use_pkl:

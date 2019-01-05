@@ -53,7 +53,10 @@ def train_test(num_rows=None):
     df['year'] = df['first_active_month'].dt.year.fillna(0).astype(int).astype(object)
     df['dayofweek'] = df['first_active_month'].dt.dayofweek.fillna(0).astype(int).astype(object)
     df['weekofyear'] = df['first_active_month'].dt.weekofyear.fillna(0).astype(int).astype(object)
+    df['quarter'] = df['first_active_month'].dt.quarter
+    df['is_month_start'] = df['first_active_month'].dt.is_month_start
     df['month_year'] = df['month'].astype(str)+'_'+df['year'].astype(str)
+
     df['elapsed_time'] = (datetime.datetime.today() - df['first_active_month']).dt.days
 
     # one hot encoding
@@ -178,6 +181,7 @@ def historical_transactions(merchants_df, num_rows=None):
     # Y/Nのカラムを1-0へ変換
     hist_df['authorized_flag'] = hist_df['authorized_flag'].map({'Y': 1, 'N': 0}).astype(int)
     hist_df['category_1'] = hist_df['category_1'].map({'Y': 1, 'N': 0}).astype(int)
+    hist_df['category_3'] = hist_df['category_3'].map({'A':0, 'B':1, 'C':2})
 
     # datetime features
     hist_df['purchase_date'] = pd.to_datetime(hist_df['purchase_date'])
@@ -226,11 +230,15 @@ def historical_transactions(merchants_df, num_rows=None):
     # memory usage削減
     hist_df = reduce_mem_usage(hist_df)
 
-    col_unique =['month', 'hour', 'weekofyear', 'weekday', 'year', 'day',
-                 'subsector_id', 'merchant_id', 'merchant_category_id']
+    col_unique =['subsector_id', 'merchant_id', 'merchant_category_id']
+    col_seas = ['month', 'hour', 'weekofyear', 'weekday', 'year', 'day']
+
     aggs = {}
     for col in col_unique:
         aggs[col] = ['nunique']
+
+    for col in col_seas:
+        aggs[col] = ['nunique', 'mean', 'min', 'max']
 
     for col in merchants_cols:
         aggs[col] = ['sum', 'mean']
@@ -240,10 +248,12 @@ def historical_transactions(merchants_df, num_rows=None):
     aggs['purchase_date'] = ['max','min']
     aggs['month_lag'] = ['max','min','mean','var', 'std', 'skew']
     aggs['month_diff'] = ['max','min','mean','var', 'std', 'skew']
-    aggs['authorized_flag'] = ['sum', 'mean']
-    aggs['weekend'] = ['sum', 'mean']
-    aggs['category_1'] = ['sum', 'mean']
-    aggs['card_id'] = ['size']
+    aggs['authorized_flag'] = ['sum', 'mean', 'min', 'max']
+    aggs['weekend'] = ['sum', 'mean', 'min', 'max']
+    aggs['category_1'] = ['sum', 'mean', 'min']
+    aggs['category_2'] = ['sum', 'mean', 'min']
+    aggs['category_3'] = ['sum', 'mean', 'min']
+    aggs['card_id'] = ['size','count']
     aggs['is_holiday'] = ['sum', 'mean']
     aggs['price'] = ['sum','mean','max','min','std']
     aggs['Christmas_Day_2017'] = ['mean']
@@ -292,6 +302,7 @@ def new_merchant_transactions(merchants_df, num_rows=None):
     # Y/Nのカラムを1-0へ変換
     new_merchant_df['authorized_flag'] = new_merchant_df['authorized_flag'].map({'Y': 1, 'N': 0}).astype(int)
     new_merchant_df['category_1'] = new_merchant_df['category_1'].map({'Y': 1, 'N': 0}).astype(int)
+    new_merchant_df['category_3'] = new_merchant_df['category_3'].map({'A':0, 'B':1, 'C':2}).astype(int)
 
     # datetime features
     new_merchant_df['purchase_date'] = pd.to_datetime(new_merchant_df['purchase_date'])
@@ -340,11 +351,16 @@ def new_merchant_transactions(merchants_df, num_rows=None):
     # memory usage削減
     new_merchant_df = reduce_mem_usage(new_merchant_df)
 
-    col_unique =['month', 'hour', 'weekofyear', 'weekday', 'year', 'day',
-                 'subsector_id', 'merchant_id', 'merchant_category_id']
+    col_unique =['subsector_id', 'merchant_id', 'merchant_category_id']
+    col_seas = ['month', 'hour', 'weekofyear', 'weekday', 'year', 'day']
+
     aggs = {}
     for col in col_unique:
         aggs[col] = ['nunique']
+
+    for col in col_seas:
+        aggs[col] = ['nunique', 'mean', 'min', 'max']
+
     for col in merchants_cols:
         aggs[col] = ['sum', 'mean']
 
@@ -353,10 +369,12 @@ def new_merchant_transactions(merchants_df, num_rows=None):
     aggs['purchase_date'] = ['max','min']
     aggs['month_lag'] = ['max','min','mean','var','std','skew']
     aggs['month_diff'] = ['max','min','mean','var','std','skew']
-    aggs['authorized_flag'] = ['sum', 'mean']
-    aggs['weekend'] = ['sum', 'mean']
-    aggs['category_1'] = ['sum', 'mean']
-    aggs['card_id'] = ['size']
+    aggs['authorized_flag'] = ['sum', 'mean', 'min', 'max']
+    aggs['weekend'] = ['sum', 'mean', 'min', 'max']
+    aggs['category_1'] = ['sum', 'mean', 'min']
+    aggs['category_2'] = ['sum', 'mean', 'min']
+    aggs['category_3'] = ['sum', 'mean', 'min']
+    aggs['card_id'] = ['size','count']
     aggs['is_holiday'] = ['sum', 'mean']
     aggs['price'] = ['sum','mean','max','min','std']
     aggs['Christmas_Day_2017'] = ['mean']
@@ -404,6 +422,7 @@ def additional_features(df):
         df[f] = df[f].astype(np.int64) * 1e-9
 
     df['card_id_total'] = df['new_card_id_size']+df['hist_card_id_size']
+    df['card_id_cnt_total'] = df['new_card_id_count']+df['hist_card_id_count']
     df['purchase_amount_total'] = df['new_purchase_amount_sum']+df['hist_purchase_amount_sum']
     df['purchase_amount_mean'] = df['new_purchase_amount_mean']+df['hist_purchase_amount_mean']
     df['purchase_amount_max'] = df['new_purchase_amount_max']+df['hist_purchase_amount_max']

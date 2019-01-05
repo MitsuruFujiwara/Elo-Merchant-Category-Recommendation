@@ -18,7 +18,7 @@ from preprocessing_002 import train_test, historical_transactions, merchants, ne
 from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, loadpkl, save2pkl, rmse, submit
 
 ################################################################################
-# Model For non-Outliers Classification
+# Model For Outliers
 ################################################################################
 
 warnings.simplefilter(action='ignore', category=SettingWithCopyWarning)
@@ -48,7 +48,7 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
 # LightGBM GBDT with KFold or Stratified KFold
 def kfold_lightgbm(train, test, num_folds, stratified = False, debug= False):
 
-    # only use non-outlier
+    # only use outlier
     train_df = train[train['outliers']==1]
     test_df = test[test['outliers']==1]
 

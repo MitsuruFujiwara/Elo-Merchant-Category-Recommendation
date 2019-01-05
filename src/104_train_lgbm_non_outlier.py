@@ -18,7 +18,7 @@ from preprocessing_002 import train_test, historical_transactions, merchants, ne
 from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, loadpkl, save2pkl, rmse, submit
 
 ################################################################################
-# Model For Outliers Classification
+# Model For Non-Outlier
 ################################################################################
 
 warnings.simplefilter(action='ignore', category=SettingWithCopyWarning)

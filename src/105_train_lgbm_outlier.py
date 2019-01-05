@@ -18,7 +18,7 @@ from preprocessing_002 import train_test, historical_transactions, merchants, ne
 from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, loadpkl, save2pkl, rmse, submit
 
 ################################################################################
-# Model For Outliers
+# Model For Outliers (not used)
 ################################################################################
 
 warnings.simplefilter(action='ignore', category=SettingWithCopyWarning)
@@ -160,7 +160,7 @@ def kfold_lightgbm(train, test, num_folds, stratified = False, debug= False):
 
         # API経由でsubmit
         submit(submission_file_name, comment='model105 cv: %.6f' % full_rmse)
-        
+
 def main(debug=False, use_pkl=False):
     num_rows = 10000 if debug else None
     if use_pkl:

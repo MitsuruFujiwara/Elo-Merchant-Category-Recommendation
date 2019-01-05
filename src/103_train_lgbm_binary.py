@@ -149,8 +149,8 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
 
         # 提出データの予測値を保存
         test_df.loc[:,'Outlier_Likelyhood'] = sub_preds
-        q_test = test_df['Outlier_Likelyhood'].quantile(.98907) # 1.0930%
-        test_df.loc[:,'outliers']=test_df['Outlier_Likelyhood'].apply(lambda x: 1 if x > q_train else 0) # trainのthreshold使います
+        q_test = test_df['Outlier_Likelyhood'].quantile(.8) # 1.0930%
+        test_df.loc[:,'outliers']=test_df['Outlier_Likelyhood'].apply(lambda x: 1 if x > q_test else 0) # trainのthreshold使います
         test_df.loc[test_df['outliers']==1,'target']=-33.21928095
 
         print('q_train: {}, q_test: {}'.format(q_train, q_test))

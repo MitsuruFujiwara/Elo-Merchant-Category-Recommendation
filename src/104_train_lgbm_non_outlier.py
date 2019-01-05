@@ -146,13 +146,20 @@ def kfold_lightgbm(train, test, num_folds, stratified = False, debug= False):
     if not debug:
         # 提出データの予測値を保存
         test.loc[test['outliers']==0,'target'] = sub_preds
+        test = test.reset_index()
+        test[['card_id', 'target']].to_csv(submission_file_name, index=False)
 
         # out of foldの予測値を保存
         train.loc[train['outliers']==0,'OOF_PRED'] = oof_preds
+        train = train.reset_index()
+        train[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
 
         # save pkl
         save2pkl('../output/train_df.pkl', train)
         save2pkl('../output/test_df.pkl', test)
+
+        # API経由でsubmit
+        submit(submission_file_name, comment='model104 cv: %.6f' % full_rmse)
 
 def main(debug=False, use_pkl=False):
     num_rows = 10000 if debug else None

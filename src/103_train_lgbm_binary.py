@@ -143,8 +143,9 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
     if not debug:
         # 提出データの予測値を保存
         test_df.loc[:,'Outlier_Likelyhood'] = sub_preds
-        q_test = test_df['Outlier_Likelyhood'].quantile(1.0-0.0106)
+        q_test = test_df['Outlier_Likelyhood'].quantile(.98907) # 1.0930%
         test_df.loc[:,'outliers']=test_df['Outlier_Likelyhood'].apply(lambda x: 1 if x > q_test else 0)
+        test_df.loc[test_df['outliers']==1,'target']=-33.21928095
 
         # out of foldの予測値を保存
         train_df.loc[:,'Outlier_Likelyhood'] = oof_preds

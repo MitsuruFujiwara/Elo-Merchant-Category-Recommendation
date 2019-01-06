@@ -54,7 +54,7 @@ def train_test(num_rows=None):
     df['dayofweek'] = df['first_active_month'].dt.dayofweek.fillna(0).astype(int).astype(object)
     df['weekofyear'] = df['first_active_month'].dt.weekofyear.fillna(0).astype(int).astype(object)
     df['quarter'] = df['first_active_month'].dt.quarter
-    df['is_month_start'] = df['first_active_month'].dt.is_month_start
+#    df['is_month_start'] = df['first_active_month'].dt.is_month_start
     df['month_year'] = df['month'].astype(str)+'_'+df['year'].astype(str)
 
     df['elapsed_time'] = (datetime.datetime.today() - df['first_active_month']).dt.days
@@ -422,7 +422,9 @@ def additional_features(df):
         df[f] = df[f].astype(np.int64) * 1e-9
 
     df['card_id_total'] = df['new_card_id_size']+df['hist_card_id_size']
+    df['card_id_ratio'] = df['new_card_id_size']/df['hist_card_id_size']
     df['card_id_cnt_total'] = df['new_card_id_count']+df['hist_card_id_count']
+    df['card_id_cnt_ratio'] = df['new_card_id_count']/df['hist_card_id_count']
     df['purchase_amount_total'] = df['new_purchase_amount_sum']+df['hist_purchase_amount_sum']
     df['purchase_amount_mean'] = df['new_purchase_amount_mean']+df['hist_purchase_amount_mean']
     df['purchase_amount_max'] = df['new_purchase_amount_max']+df['hist_purchase_amount_max']

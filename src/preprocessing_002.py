@@ -427,6 +427,16 @@ def additional_features(df):
     df['purchase_amount_mean'] = df['new_purchase_amount_mean']+df['hist_purchase_amount_mean']
     df['purchase_amount_max'] = df['new_purchase_amount_max']+df['hist_purchase_amount_max']
     df['purchase_amount_min'] = df['new_purchase_amount_min']+df['hist_purchase_amount_min']
+    df['purchase_amount_ratio'] = df['new_purchase_amount_sum']/df['hist_purchase_amount_sum']
+    df['month_diff_mean'] = df['new_month_diff_mean']+df['hist_month_diff_mean']
+    df['month_diff_max'] = df['new_month_diff_max']+df['hist_month_diff_max']
+    df['month_diff_min'] = df['new_month_diff_min']+df['hist_month_diff_min']
+    df['month_lag_mean'] = df['new_month_lag_mean']+df['hist_month_lag_mean']
+    df['month_lag_max'] = df['new_month_lag_max']+df['hist_month_lag_max']
+    df['month_lag_min'] = df['new_month_lag_min']+df['hist_month_lag_min']
+    df['category_1_sum'] = df['new_category_1_sum']+df['hist_category_1_sum']
+    df['category_1_mean'] = df['new_category_1_mean']+df['hist_category_1_mean']
+    df['category_1_min'] = df['new_category_1_min']+df['hist_category_1_min']
 
     return df
 

@@ -47,18 +47,18 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
     plt.savefig(outputpath)
 
 # LightGBM GBDT with KFold or Stratified KFold
-def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
+def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= False):
 
     # Divide in training/validation and test data
-    train_df = df[df['target'].notnull()]
-    test_df = df[df['target'].isnull()]
+#    train_df = df[df['target'].notnull()]
+#    test_df = df[df['target'].isnull()]
 
     # only use non-outlier
 #    train_df = train_df[train_df['outliers']==0]
 
     print("Starting LightGBM. Train shape: {}, test shape: {}".format(train_df.shape, test_df.shape))
-    del df
-    gc.collect()
+#    del df
+#    gc.collect()
 
     # save pkl
     save2pkl('../output/train_df.pkl', train_df)
@@ -74,7 +74,7 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
     oof_preds = np.zeros(train_df.shape[0])
     sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
-    feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
+    feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED] + ['Outlier_Likelyhood']
 
     # k-fold
     for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], train_df['outliers'])):
@@ -170,7 +170,9 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
 def main(debug=False, use_pkl=False):
     num_rows = 10000 if debug else None
     if use_pkl:
-        df = loadpkl('../output/df.pkl')
+#        df = loadpkl('../output/df.pkl')
+        train_df = loadpkl('../output/train_df.pkl')
+        test_df = loadpkl('../output/test_df.pkl')
     else:
         with timer("train & test"):
             df = train_test(num_rows)
@@ -187,8 +189,8 @@ def main(debug=False, use_pkl=False):
         with timer("save pkl"):
             save2pkl('../output/df.pkl', df)
     with timer("Run LightGBM with kfold"):
-        print("df shape:", df.shape)
-        kfold_lightgbm(df, num_folds=NUM_FOLDS, stratified=True, debug=debug)
+#        print("df shape:", df.shape)
+        kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, stratified=False, debug=debug)
 
 if __name__ == "__main__":
     submission_file_name = "../output/submission.csv"

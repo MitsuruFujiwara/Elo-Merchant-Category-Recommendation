@@ -48,17 +48,7 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
 
 # LightGBM GBDT with KFold or Stratified KFold
 def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= False):
-
-    # Divide in training/validation and test data
-#    train_df = df[df['target'].notnull()]
-#    test_df = df[df['target'].isnull()]
-
-    # only use non-outlier
-#    train_df = train_df[train_df['outliers']==0]
-
     print("Starting LightGBM. Train shape: {}, test shape: {}".format(train_df.shape, test_df.shape))
-#    del df
-#    gc.collect()
 
     # save pkl
     save2pkl('../output/train_df.pkl', train_df)
@@ -74,7 +64,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
     oof_preds = np.zeros(train_df.shape[0])
     sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
-    feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED] + ['Outlier_Likelyhood']
+    feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
 
     # k-fold
     for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], train_df['outliers'])):
@@ -187,13 +177,18 @@ def main(debug=False, use_pkl=False):
         with timer("additional features"):
             df = additional_features(df)
         with timer("save pkl"):
+            print("df shape:", df.shape)
             save2pkl('../output/df.pkl', df)
+        with timer("split train & test"):
+            train_df = df[df['target'].notnull()]
+            test_df = df[df['target'].isnull()]
+            del df
+            gc.collect()
     with timer("Run LightGBM with kfold"):
-#        print("df shape:", df.shape)
         kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, stratified=False, debug=debug)
 
 if __name__ == "__main__":
     submission_file_name = "../output/submission.csv"
     oof_file_name = "../output/oof_lgbm.csv"
     with timer("Full model run"):
-        main(debug=False,use_pkl=True)
+        main(debug=False,use_pkl=False)

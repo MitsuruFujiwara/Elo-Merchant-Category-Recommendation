@@ -30,6 +30,12 @@ def one_hot_encoder(df, nan_as_category = True):
     new_columns = [c for c in df.columns if c not in original_columns]
     return df, new_columns
 
+# columns毎にtarget encodingを適用する関数
+def targetEncoding(df, col, target):
+    dict_for_map = df[df[target].notnull()].groupby(col)[target].mean()
+    res = df[col].map(dict_for_map)
+    return res
+
 # correlationの高い変数を削除する機能
 def removeCorrelatedVariables(data, threshold):
     corr_matrix = data.corr().abs()

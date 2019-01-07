@@ -59,18 +59,29 @@ def train_test(num_rows=None):
 
     df['elapsed_time'] = (datetime.datetime.today() - df['first_active_month']).dt.days
 
-    # one hot encoding
-    df, cols = one_hot_encoder(df, nan_as_category=False)
-
-    for f in ['feature_1','feature_2','feature_3']:
+    # target encoding
+    for f in ['month','year','dayofweek','weekofyear','quarter','month_year']:
         order_label = df.groupby([f])['outliers'].mean()
         df[f] = df[f].map(order_label)
 
+    # target encode前の値を集計
     df['feature_sum'] = df['feature_1'] + df['feature_2'] + df['feature_3']
     df['feature_mean'] = df['feature_sum']/3
     df['feature_max'] = df[['feature_1', 'feature_2', 'feature_3']].max(axis=1)
     df['feature_min'] = df[['feature_1', 'feature_2', 'feature_3']].min(axis=1)
     df['feature_std'] = df[['feature_1', 'feature_2', 'feature_3']].std(axis=1)
+
+    # target encoding
+    for f in ['feature_1','feature_2','feature_3']:
+        order_label = df.groupby([f])['outliers'].mean()
+        df[f] = df[f].map(order_label)
+
+    # target encode後の値を集計
+    df['feature_encode_sum'] = df['feature_1'] + df['feature_2'] + df['feature_3']
+    df['feature_encode_mean'] = df['feature_sum']/3
+    df['feature_encode_max'] = df[['feature_1', 'feature_2', 'feature_3']].max(axis=1)
+    df['feature_encode_min'] = df[['feature_1', 'feature_2', 'feature_3']].min(axis=1)
+    df['feature_encode_std'] = df[['feature_1', 'feature_2', 'feature_3']].std(axis=1)
 
     return df
 

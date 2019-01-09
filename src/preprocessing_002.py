@@ -1,5 +1,3 @@
-
-
 import datetime
 import gc
 import numpy as np
@@ -54,34 +52,22 @@ def train_test(num_rows=None):
     df['dayofweek'] = df['first_active_month'].dt.dayofweek.fillna(0).astype(int).astype(object)
     df['weekofyear'] = df['first_active_month'].dt.weekofyear.fillna(0).astype(int).astype(object)
     df['quarter'] = df['first_active_month'].dt.quarter
-#    df['is_month_start'] = df['first_active_month'].dt.is_month_start
     df['month_year'] = df['month'].astype(str)+'_'+df['year'].astype(str)
 
     df['elapsed_time'] = (datetime.datetime.today() - df['first_active_month']).dt.days
 
-    # target encoding
-    for f in ['month','year','dayofweek','weekofyear','quarter','month_year']:
+    # one hot encoding
+    df, cols = one_hot_encoder(df, nan_as_category=False)
+
+    for f in ['feature_1','feature_2','feature_3']:
         order_label = df.groupby([f])['outliers'].mean()
         df[f] = df[f].map(order_label)
 
-    # target encode前の値を集計
     df['feature_sum'] = df['feature_1'] + df['feature_2'] + df['feature_3']
     df['feature_mean'] = df['feature_sum']/3
     df['feature_max'] = df[['feature_1', 'feature_2', 'feature_3']].max(axis=1)
     df['feature_min'] = df[['feature_1', 'feature_2', 'feature_3']].min(axis=1)
     df['feature_std'] = df[['feature_1', 'feature_2', 'feature_3']].std(axis=1)
-
-    # target encoding
-    for f in ['feature_1','feature_2','feature_3']:
-        order_label = df.groupby([f])['outliers'].mean()
-        df[f] = df[f].map(order_label)
-
-    # target encode後の値を集計
-    df['feature_encode_sum'] = df['feature_1'] + df['feature_2'] + df['feature_3']
-    df['feature_encode_mean'] = df['feature_sum']/3
-    df['feature_encode_max'] = df[['feature_1', 'feature_2', 'feature_3']].max(axis=1)
-    df['feature_encode_min'] = df[['feature_1', 'feature_2', 'feature_3']].min(axis=1)
-    df['feature_encode_std'] = df[['feature_1', 'feature_2', 'feature_3']].std(axis=1)
 
     return df
 
@@ -232,6 +218,10 @@ def historical_transactions(merchants_df, num_rows=None):
     hist_df['month_diff'] = ((datetime.datetime.today() - hist_df['purchase_date']).dt.days)//30
     hist_df['month_diff'] += hist_df['month_lag']
 
+    # additional features
+    hist_df['duration'] = hist_df['purchase_amount']*hist_df['month_diff']
+    hist_df['amount_month_ratio'] = hist_df['purchase_amount']/hist_df['month_diff']
+
     # merge merchants_df
     hist_df = pd.merge(hist_df, merchants_df, on='merchant_id', how='outer')
     merchants_cols = merchants_df.columns.tolist()
@@ -274,6 +264,8 @@ def historical_transactions(merchants_df, num_rows=None):
     aggs['Valentine_Day_2017'] = ['mean']
     aggs['Black_Friday_2017'] = ['mean']
     aggs['Mothers_Day_2018'] = ['mean']
+    aggs['duration']=['sum', 'mean', 'min', 'max']
+    aggs['amount_month_ratio']=['sum', 'mean', 'min', 'max']
 
     for col in ['category_2','category_3']:
         hist_df[col+'_mean'] = hist_df.groupby([col])['purchase_amount'].transform('mean')
@@ -353,6 +345,10 @@ def new_merchant_transactions(merchants_df, num_rows=None):
     new_merchant_df['month_diff'] = ((datetime.datetime.today() - new_merchant_df['purchase_date']).dt.days)//30
     new_merchant_df['month_diff'] += new_merchant_df['month_lag']
 
+    # additional features
+    new_merchant_df['duration'] = new_merchant_df['purchase_amount']*new_merchant_df['month_diff']
+    new_merchant_df['amount_month_ratio'] = new_merchant_df['purchase_amount']/new_merchant_df['month_diff']
+
     # merge merchants df
     merchants_cols = merchants_df.columns.tolist()
     new_merchant_df = pd.merge(new_merchant_df, merchants_df, on='merchant_id', how='outer')
@@ -395,6 +391,8 @@ def new_merchant_transactions(merchants_df, num_rows=None):
     aggs['Valentine_Day_2017'] = ['mean']
     aggs['Black_Friday_2017'] = ['mean']
     aggs['Mothers_Day_2018'] = ['mean']
+    aggs['duration']=['sum', 'mean', 'min', 'max']
+    aggs['amount_month_ratio']=['sum', 'mean', 'min', 'max']
 
     for col in ['category_2','category_3']:
         new_merchant_df[col+'_mean'] = new_merchant_df.groupby([col])['purchase_amount'].transform('mean')
@@ -433,9 +431,7 @@ def additional_features(df):
         df[f] = df[f].astype(np.int64) * 1e-9
 
     df['card_id_total'] = df['new_card_id_size']+df['hist_card_id_size']
-    df['card_id_ratio'] = df['new_card_id_size']/df['hist_card_id_size']
     df['card_id_cnt_total'] = df['new_card_id_count']+df['hist_card_id_count']
-    df['card_id_cnt_ratio'] = df['new_card_id_count']/df['hist_card_id_count']
     df['purchase_amount_total'] = df['new_purchase_amount_sum']+df['hist_purchase_amount_sum']
     df['purchase_amount_mean'] = df['new_purchase_amount_mean']+df['hist_purchase_amount_mean']
     df['purchase_amount_max'] = df['new_purchase_amount_max']+df['hist_purchase_amount_max']

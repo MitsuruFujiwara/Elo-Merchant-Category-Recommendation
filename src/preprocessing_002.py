@@ -53,8 +53,11 @@ def train_test(num_rows=None):
     df['weekofyear'] = df['first_active_month'].dt.weekofyear.fillna(0).astype(int).astype(object)
     df['quarter'] = df['first_active_month'].dt.quarter
     df['month_year'] = df['month'].astype(str)+'_'+df['year'].astype(str)
-
     df['elapsed_time'] = (datetime.datetime.today() - df['first_active_month']).dt.days
+
+    df['days_feature1'] = df['elapsed_time'] * df['feature_1']
+    df['days_feature2'] = df['elapsed_time'] * df['feature_2']
+    df['days_feature3'] = df['elapsed_time'] * df['feature_3']
 
     # one hot encoding
     df, cols = one_hot_encoder(df, nan_as_category=False)

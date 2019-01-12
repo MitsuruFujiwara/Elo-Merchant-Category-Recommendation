@@ -11,12 +11,12 @@ from time import time, sleep
 
 NUM_FOLDS = 11
 
-feats_drop = pd.read_csv('feats_drop.csv')['feature'].tolist()
+#feats_drop = pd.read_csv('feats_drop.csv')['feature'].tolist()
 
 FEATS_EXCLUDED = ['first_active_month', 'target', 'card_id', 'outliers',
                   'hist_purchase_date_max', 'hist_purchase_date_min', 'hist_card_id_size',
                   'new_purchase_date_max', 'new_purchase_date_min', 'new_card_id_size',
-                  'Outlier_Likelyhood', 'OOF_PRED', 'outliers_pred'] + feats_drop
+                  'Outlier_Likelyhood', 'OOF_PRED', 'outliers_pred']
 
 COMPETITION_NAME = 'elo-merchant-category-recommendation'
 

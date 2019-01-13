@@ -48,11 +48,11 @@ def train_test(num_rows=None):
 
     # datetime features
     df['month'] = df['first_active_month'].dt.month.fillna(0).astype(int).astype(object)
-    df['year'] = df['first_active_month'].dt.year.fillna(0).astype(int).astype(object)
-    df['dayofweek'] = df['first_active_month'].dt.dayofweek.fillna(0).astype(int).astype(object)
-    df['weekofyear'] = df['first_active_month'].dt.weekofyear.fillna(0).astype(int).astype(object)
+#    df['year'] = df['first_active_month'].dt.year.fillna(0).astype(int).astype(object)
+#    df['dayofweek'] = df['first_active_month'].dt.dayofweek.fillna(0).astype(int).astype(object)
+#    df['weekofyear'] = df['first_active_month'].dt.weekofyear.fillna(0).astype(int).astype(object)
     df['quarter'] = df['first_active_month'].dt.quarter
-    df['month_year'] = df['month'].astype(str)+'_'+df['year'].astype(str)
+#    df['month_year'] = df['month'].astype(str)+'_'+df['year'].astype(str)
     df['elapsed_time'] = (datetime.datetime.today() - df['first_active_month']).dt.days
 
     df['days_feature1'] = df['elapsed_time'] * df['feature_1']
@@ -74,7 +74,7 @@ def train_test(num_rows=None):
     df['feature_mean'] = df['feature_sum']/3
     df['feature_max'] = df[['feature_1', 'feature_2', 'feature_3']].max(axis=1)
     df['feature_min'] = df[['feature_1', 'feature_2', 'feature_3']].min(axis=1)
-    df['feature_std'] = df[['feature_1', 'feature_2', 'feature_3']].std(axis=1)
+    df['feature_var'] = df[['feature_1', 'feature_2', 'feature_3']].var(axis=1)
 
     return df
 
@@ -189,11 +189,11 @@ def historical_transactions(num_rows=None):
 
     # datetime features
     hist_df['purchase_date'] = pd.to_datetime(hist_df['purchase_date'])
-    hist_df['year'] = hist_df['purchase_date'].dt.year
+#    hist_df['year'] = hist_df['purchase_date'].dt.year
     hist_df['month'] = hist_df['purchase_date'].dt.month
     hist_df['day'] = hist_df['purchase_date'].dt.day
     hist_df['hour'] = hist_df['purchase_date'].dt.hour
-    hist_df['weekofyear'] = hist_df['purchase_date'].dt.weekofyear
+#    hist_df['weekofyear'] = hist_df['purchase_date'].dt.weekofyear
     hist_df['weekday'] = hist_df['purchase_date'].dt.weekday
     hist_df['weekend'] = (hist_df['purchase_date'].dt.weekday >=5).astype(int)
 
@@ -233,28 +233,28 @@ def historical_transactions(num_rows=None):
     hist_df = reduce_mem_usage(hist_df)
 
     col_unique =['subsector_id', 'merchant_id', 'merchant_category_id']
-    col_seas = ['month', 'hour', 'weekofyear', 'weekday', 'year', 'day']
+    col_seas = ['month', 'hour', 'weekday', 'day']
 
     aggs = {}
     for col in col_unique:
         aggs[col] = ['nunique']
 
     for col in col_seas:
-        aggs[col] = ['nunique', 'mean', 'min', 'max']
+        aggs[col] = ['nunique','mean']
 
-    aggs['purchase_amount'] = ['max','min','mean','var', 'std', 'skew']
-    aggs['installments'] = ['max','min','mean','var', 'std', 'skew']
+    aggs['purchase_amount'] = ['sum','max','min','mean','var','skew']
+    aggs['installments'] = ['sum','max','mean','var','skew']
     aggs['purchase_date'] = ['max','min']
-    aggs['month_lag'] = ['max','min','mean','var', 'std', 'skew']
-    aggs['month_diff'] = ['max','min','mean','var', 'std', 'skew']
-    aggs['authorized_flag'] = [ 'mean', 'min']
-    aggs['weekend'] = [ 'mean', 'min', 'max']
-    aggs['category_1'] = [ 'mean', 'min']
-    aggs['category_2'] = [ 'mean', 'min']
-    aggs['category_3'] = [ 'mean', 'min']
+    aggs['month_lag'] = ['max','min','mean','var','skew']
+    aggs['month_diff'] = ['max','min','mean','var','skew']
+    aggs['authorized_flag'] = ['mean']
+    aggs['weekend'] = ['mean', 'min', 'max']
+    aggs['category_1'] = ['mean', 'min']
+    aggs['category_2'] = ['mean', 'min']
+    aggs['category_3'] = ['mean', 'min']
     aggs['card_id'] = ['size','count']
-    aggs['is_holiday'] = [ 'mean']
-    aggs['price'] = ['mean','max','min','std','var']
+    aggs['is_holiday'] = ['mean']
+    aggs['price'] = ['mean','max','min','var']
     aggs['Christmas_Day_2017'] = ['mean']
     aggs['Mothers_Day_2017'] = ['mean']
     aggs['fathers_day_2017'] = ['mean']
@@ -262,8 +262,8 @@ def historical_transactions(num_rows=None):
     aggs['Valentine_Day_2017'] = ['mean']
     aggs['Black_Friday_2017'] = ['mean']
     aggs['Mothers_Day_2018'] = ['mean']
-    aggs['duration']=[ 'mean', 'min', 'max']
-    aggs['amount_month_ratio']=[ 'mean', 'min', 'max']
+    aggs['duration']=['mean','min','max','var','skew']
+    aggs['amount_month_ratio']=['mean','min','max','var','skew']
 
     for col in ['category_2','category_3']:
         hist_df[col+'_mean'] = hist_df.groupby([col])['purchase_amount'].transform('mean')
@@ -306,11 +306,11 @@ def new_merchant_transactions(num_rows=None):
 
     # datetime features
     new_merchant_df['purchase_date'] = pd.to_datetime(new_merchant_df['purchase_date'])
-    new_merchant_df['year'] = new_merchant_df['purchase_date'].dt.year
+#    new_merchant_df['year'] = new_merchant_df['purchase_date'].dt.year
     new_merchant_df['month'] = new_merchant_df['purchase_date'].dt.month
     new_merchant_df['day'] = new_merchant_df['purchase_date'].dt.day
     new_merchant_df['hour'] = new_merchant_df['purchase_date'].dt.hour
-    new_merchant_df['weekofyear'] = new_merchant_df['purchase_date'].dt.weekofyear
+#    new_merchant_df['weekofyear'] = new_merchant_df['purchase_date'].dt.weekofyear
     new_merchant_df['weekday'] = new_merchant_df['purchase_date'].dt.weekday
     new_merchant_df['weekend'] = (new_merchant_df['purchase_date'].dt.weekday >=5).astype(int)
 
@@ -350,28 +350,28 @@ def new_merchant_transactions(num_rows=None):
     new_merchant_df = reduce_mem_usage(new_merchant_df)
 
     col_unique =['subsector_id', 'merchant_id', 'merchant_category_id']
-    col_seas = ['month', 'hour', 'weekofyear', 'weekday', 'year', 'day']
+    col_seas = ['month', 'hour', 'weekday', 'day']
 
     aggs = {}
     for col in col_unique:
         aggs[col] = ['nunique']
 
     for col in col_seas:
-        aggs[col] = ['nunique', 'mean', 'min', 'max']
+        aggs[col] = ['nunique', 'mean']
 
-    aggs['purchase_amount'] = ['max','min','mean','var', 'std', 'skew']
-    aggs['installments'] = ['max','min','mean','var', 'std', 'skew']
+    aggs['purchase_amount'] = ['sum','max','min','mean','var','skew']
+    aggs['installments'] = ['sum','max','mean','var','skew']
     aggs['purchase_date'] = ['max','min']
-    aggs['month_lag'] = ['max','min','mean','var', 'std', 'skew']
-    aggs['month_diff'] = ['max','min','mean','var', 'std', 'skew']
-    aggs['authorized_flag'] = [ 'mean', 'min']
+    aggs['month_lag'] = ['max','min','mean','var','skew']
+    aggs['month_diff'] = ['max','min','mean','var','skew']
+    aggs['authorized_flag'] = ['mean']
     aggs['weekend'] = [ 'mean', 'min', 'max']
     aggs['category_1'] = [ 'mean', 'min']
     aggs['category_2'] = [ 'mean', 'min']
     aggs['category_3'] = [ 'mean', 'min']
     aggs['card_id'] = ['size','count']
     aggs['is_holiday'] = [ 'mean']
-    aggs['price'] = ['mean','max','min','std','var']
+    aggs['price'] = ['mean','max','min','var']
     aggs['Christmas_Day_2017'] = ['mean']
     aggs['Mothers_Day_2017'] = ['mean']
     aggs['fathers_day_2017'] = ['mean']
@@ -379,8 +379,8 @@ def new_merchant_transactions(num_rows=None):
     aggs['Valentine_Day_2017'] = ['mean']
     aggs['Black_Friday_2017'] = ['mean']
     aggs['Mothers_Day_2018'] = ['mean']
-    aggs['duration']=[ 'mean', 'min', 'max']
-    aggs['amount_month_ratio']=[ 'mean', 'min', 'max']
+    aggs['duration']=['mean','min','max','var','skew']
+    aggs['amount_month_ratio']=['mean','min','max','var','skew']
 
     for col in ['category_2','category_3']:
         new_merchant_df[col+'_mean'] = new_merchant_df.groupby([col])['purchase_amount'].transform('mean')
@@ -419,18 +419,17 @@ def additional_features(df):
 
     df['card_id_total'] = df['new_card_id_size']+df['hist_card_id_size']
     df['card_id_cnt_total'] = df['new_card_id_count']+df['hist_card_id_count']
-#    df['purchase_amount_total'] = df['new_purchase_amount_sum']+df['hist_purchase_amount_sum']
+    df['purchase_amount_total'] = df['new_purchase_amount_sum']+df['hist_purchase_amount_sum']
     df['purchase_amount_mean'] = df['new_purchase_amount_mean']+df['hist_purchase_amount_mean']
     df['purchase_amount_max'] = df['new_purchase_amount_max']+df['hist_purchase_amount_max']
     df['purchase_amount_min'] = df['new_purchase_amount_min']+df['hist_purchase_amount_min']
-#    df['purchase_amount_ratio'] = df['new_purchase_amount_sum']/df['hist_purchase_amount_sum']
+    df['purchase_amount_ratio'] = df['new_purchase_amount_sum']/df['hist_purchase_amount_sum']
     df['month_diff_mean'] = df['new_month_diff_mean']+df['hist_month_diff_mean']
     df['month_diff_max'] = df['new_month_diff_max']+df['hist_month_diff_max']
     df['month_diff_min'] = df['new_month_diff_min']+df['hist_month_diff_min']
     df['month_lag_mean'] = df['new_month_lag_mean']+df['hist_month_lag_mean']
     df['month_lag_max'] = df['new_month_lag_max']+df['hist_month_lag_max']
     df['month_lag_min'] = df['new_month_lag_min']+df['hist_month_lag_min']
-#    df['category_1_sum'] = df['new_category_1_sum']+df['hist_category_1_sum']
     df['category_1_mean'] = df['new_category_1_mean']+df['hist_category_1_mean']
     df['category_1_min'] = df['new_category_1_min']+df['hist_category_1_min']
 

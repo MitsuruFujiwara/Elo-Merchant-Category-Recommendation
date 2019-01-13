@@ -15,7 +15,7 @@ from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import KFold, StratifiedKFold
 from pandas.core.common import SettingWithCopyWarning
 
-from preprocessing_002 import train_test, historical_transactions, merchants, new_merchant_transactions, additional_features
+from preprocessing_003 import train_test, historical_transactions, merchants, new_merchant_transactions, additional_features
 from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, loadpkl, save2pkl, rmse, submit
 
 ################################################################################
@@ -149,7 +149,7 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
 
         # 提出データの予測値を保存
         test_df.loc[:,'Outlier_Likelyhood'] = sub_preds
-        q_test = test_df['Outlier_Likelyhood'].quantile(.8) # 1.0930%
+        q_test = test_df['Outlier_Likelyhood'].quantile(.98907) # 1.0930%
         test_df.loc[:,'outliers']=test_df['Outlier_Likelyhood'].apply(lambda x: 1 if x > q_test else 0) # trainのthreshold使います
         test_df.loc[test_df['outliers']==1,'target']=-33.21928095
 
@@ -166,14 +166,10 @@ def main(debug=False, use_pkl=False):
     else:
         with timer("train & test"):
             df = train_test(num_rows)
-        with timer("merchants"):
-            merchants_df = merchants(num_rows=num_rows)
         with timer("historical transactions"):
-            df = pd.merge(df, historical_transactions(merchants_df, num_rows), on='card_id', how='outer')
+            df = pd.merge(df, historical_transactions(num_rows), on='card_id', how='outer')
         with timer("new merchants"):
-            df = pd.merge(df, new_merchant_transactions(merchants_df, num_rows), on='card_id', how='outer')
-            del merchants_df
-            gc.collect()
+            df = pd.merge(df, new_merchant_transactions(num_rows), on='card_id', how='outer')
         with timer("additional features"):
             df = additional_features(df)
         with timer("save pkl"):

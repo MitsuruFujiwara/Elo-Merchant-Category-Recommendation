@@ -230,8 +230,8 @@ def historical_transactions(merchants_df, num_rows=None):
     hist_df['amount_month_ratio'] = hist_df['purchase_amount']/hist_df['month_diff']
 
     # merge merchants_df
-    hist_df = pd.merge(hist_df, merchants_df, on='merchant_id', how='outer')
-    merchants_cols = merchants_df.columns.tolist()
+#    hist_df = pd.merge(hist_df, merchants_df, on='merchant_id', how='outer')
+#    merchants_cols = merchants_df.columns.tolist()
     del merchants_df
     gc.collect()
 
@@ -248,8 +248,8 @@ def historical_transactions(merchants_df, num_rows=None):
     for col in col_seas:
         aggs[col] = ['nunique', 'mean', 'min', 'max']
 
-    for col in merchants_cols:
-        aggs[col] = [ 'mean']
+#    for col in merchants_cols:
+#        aggs[col] = [ 'mean']
 
     aggs['purchase_amount'] = ['max','min','mean','var', 'std', 'skew']
     aggs['installments'] = ['max','min','mean','var', 'std', 'skew']
@@ -356,8 +356,8 @@ def new_merchant_transactions(merchants_df, num_rows=None):
     new_merchant_df['amount_month_ratio'] = new_merchant_df['purchase_amount']/new_merchant_df['month_diff']
 
     # merge merchants df
-    merchants_cols = merchants_df.columns.tolist()
-    new_merchant_df = pd.merge(new_merchant_df, merchants_df, on='merchant_id', how='outer')
+#    merchants_cols = merchants_df.columns.tolist()
+#    new_merchant_df = pd.merge(new_merchant_df, merchants_df, on='merchant_id', how='outer')
     del merchants_df
     gc.collect()
 
@@ -374,8 +374,8 @@ def new_merchant_transactions(merchants_df, num_rows=None):
     for col in col_seas:
         aggs[col] = ['nunique', 'mean', 'min', 'max']
 
-    for col in merchants_cols:
-        aggs[col] = [ 'mean']
+#    for col in merchants_cols:
+#        aggs[col] = [ 'mean']
 
     aggs['purchase_amount'] = ['max','min','mean','var','std','skew']
     aggs['installments'] = ['max','min','mean','var','std','skew']

@@ -48,11 +48,11 @@ def train_test(num_rows=None):
 
     # datetime features
     df['month'] = df['first_active_month'].dt.month.fillna(0).astype(int).astype(object)
-    df['year'] = df['first_active_month'].dt.year.fillna(0).astype(int).astype(object)
+#    df['year'] = df['first_active_month'].dt.year.fillna(0).astype(int).astype(object)
     df['dayofweek'] = df['first_active_month'].dt.dayofweek.fillna(0).astype(int).astype(object)
-    df['weekofyear'] = df['first_active_month'].dt.weekofyear.fillna(0).astype(int).astype(object)
+#    df['weekofyear'] = df['first_active_month'].dt.weekofyear.fillna(0).astype(int).astype(object)
     df['quarter'] = df['first_active_month'].dt.quarter
-    df['month_year'] = df['month'].astype(str)+'_'+df['year'].astype(str)
+#    df['month_year'] = df['month'].astype(str)+'_'+df['year'].astype(str)
     df['elapsed_time'] = (datetime.datetime.today() - df['first_active_month']).dt.days
 
     df['days_feature1'] = df['elapsed_time'] * df['feature_1']
@@ -189,7 +189,7 @@ def historical_transactions(num_rows=None):
 
     # datetime features
     hist_df['purchase_date'] = pd.to_datetime(hist_df['purchase_date'])
-    hist_df['year'] = hist_df['purchase_date'].dt.year
+#    hist_df['year'] = hist_df['purchase_date'].dt.year
     hist_df['month'] = hist_df['purchase_date'].dt.month
     hist_df['day'] = hist_df['purchase_date'].dt.day
     hist_df['hour'] = hist_df['purchase_date'].dt.hour
@@ -233,7 +233,7 @@ def historical_transactions(num_rows=None):
     hist_df = reduce_mem_usage(hist_df)
 
     col_unique =['subsector_id', 'merchant_id', 'merchant_category_id']
-    col_seas = ['month', 'hour', 'weekofyear', 'weekday', 'year', 'day']
+    col_seas = ['month', 'hour', 'weekofyear', 'weekday', 'day']
 
     aggs = {}
     for col in col_unique:
@@ -241,7 +241,7 @@ def historical_transactions(num_rows=None):
 
     for col in col_seas:
         aggs[col] = ['nunique', 'mean', 'min', 'max']
-        
+
     aggs['purchase_amount'] = ['sum','max','min','mean','var','skew']
     aggs['installments'] = ['sum','max','mean','var','skew']
     aggs['purchase_date'] = ['max','min']
@@ -307,7 +307,7 @@ def new_merchant_transactions(num_rows=None):
 
     # datetime features
     new_merchant_df['purchase_date'] = pd.to_datetime(new_merchant_df['purchase_date'])
-    new_merchant_df['year'] = new_merchant_df['purchase_date'].dt.year
+#    new_merchant_df['year'] = new_merchant_df['purchase_date'].dt.year
     new_merchant_df['month'] = new_merchant_df['purchase_date'].dt.month
     new_merchant_df['day'] = new_merchant_df['purchase_date'].dt.day
     new_merchant_df['hour'] = new_merchant_df['purchase_date'].dt.hour
@@ -351,7 +351,7 @@ def new_merchant_transactions(num_rows=None):
     new_merchant_df = reduce_mem_usage(new_merchant_df)
 
     col_unique =['subsector_id', 'merchant_id', 'merchant_category_id']
-    col_seas = ['month', 'hour', 'weekofyear', 'weekday', 'year', 'day']
+    col_seas = ['month', 'hour', 'weekofyear', 'weekday', 'day']
 
     aggs = {}
     for col in col_unique:

@@ -434,6 +434,12 @@ def additional_features(df):
     df['month_lag_min'] = df['new_month_lag_min']+df['hist_month_lag_min']
     df['category_1_mean'] = df['new_category_1_mean']+df['hist_category_1_mean']
     df['category_1_min'] = df['new_category_1_min']+df['hist_category_1_min']
+    df['installments_total'] = df['new_installments_sum']+df['hist_installments_sum']
+    df['installments_mean'] = df['new_installments_mean']+df['hist_installments_mean']
+    df['installments_max'] = df['new_installments_max']+df['hist_installments_max']
+    df['price_total'] = df['purchase_amount_total'] / df['installments_total']
+    df['price_mean'] = df['purchase_amount_mean'] / df['installments_mean']
+    df['price_max'] = df['purchase_amount_max'] / df['installments_max']
 
     return df
 

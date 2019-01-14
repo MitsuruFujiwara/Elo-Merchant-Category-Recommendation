@@ -14,7 +14,7 @@ from contextlib import contextmanager
 from sklearn.model_selection import KFold, StratifiedKFold
 from pandas.core.common import SettingWithCopyWarning
 
-from preprocessing_002 import train_test, historical_transactions, merchants, new_merchant_transactions, additional_features
+from preprocessing_003 import train_test, historical_transactions, merchants, new_merchant_transactions, additional_features
 from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, loadpkl, save2pkl, rmse, submit
 
 ################################################################################
@@ -87,6 +87,11 @@ def kfold_xgboost(train_df, test_df, num_folds, stratified = False, debug= False
                 'eval_metric':'rmse',
                 'silent':1,
                 'eta': 0.01,
+                'lambda': 0.1,
+                'min_child_samples': 20,
+                'feature_fraction': 0.9,
+                'bagging_freq': 1,
+                'bagging_fraction': 0.9 ,
 #                'max_depth': 8,
 #                'min_child_weight': 19,
 #                'gamma': 0.089444100759612,
@@ -94,7 +99,6 @@ def kfold_xgboost(train_df, test_df, num_folds, stratified = False, debug= False
 #                'colsample_bytree': 0.870658058238432,
 #                'colsample_bylevel': 0.995353255250289,
 #                'alpha':19.9615600411437,
-#                'lambda': 2.53962270252528,
                 'tree_method': 'gpu_hist', # GPU parameter
                 'predictor': 'gpu_predictor', # GPU parameter
                 'seed':int(2**n_fold)
@@ -149,20 +153,15 @@ def kfold_xgboost(train_df, test_df, num_folds, stratified = False, debug= False
 def main(debug=False, use_pkl=False):
     num_rows = 10000 if debug else None
     if use_pkl:
-#        df = loadpkl('../output/df.pkl')
         train_df = loadpkl('../output/train_df.pkl')
         test_df = loadpkl('../output/test_df.pkl')
     else:
         with timer("train & test"):
             df = train_test(num_rows)
-        with timer("merchants"):
-            merchants_df = merchants(num_rows=num_rows)
         with timer("historical transactions"):
-            df = pd.merge(df, historical_transactions(merchants_df, num_rows), on='card_id', how='outer')
+            df = pd.merge(df, historical_transactions(num_rows), on='card_id', how='outer')
         with timer("new merchants"):
-            df = pd.merge(df, new_merchant_transactions(merchants_df, num_rows), on='card_id', how='outer')
-            del merchants_df
-            gc.collect()
+            df = pd.merge(df, new_merchant_transactions(num_rows), on='card_id', how='outer')
         with timer("additional features"):
             df = additional_features(df)
         with timer("save pkl"):
@@ -180,4 +179,4 @@ if __name__ == "__main__":
     submission_file_name = "../output/submission_xgb.csv"
     oof_file_name = "../output/oof_xgb.csv"
     with timer("Full model run"):
-        main(debug=False,use_pkl=True)
+        main(debug=False,use_pkl=False)

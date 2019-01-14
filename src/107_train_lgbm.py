@@ -93,7 +93,6 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
                 "feature_fraction": 0.9,
                 "bagging_freq": 1,
                 "bagging_fraction": 0.9 ,
-                "lambda_l1": 0.1,
 #                'num_leaves': 31,
 #                'colsample_bytree': 0.9,
 #                'subsample': 0.805742797052828,
@@ -160,7 +159,6 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
 def main(debug=False, use_pkl=False):
     num_rows = 10000 if debug else None
     if use_pkl:
-#        df = loadpkl('../output/df.pkl')
         train_df = loadpkl('../output/train_df.pkl')
         test_df = loadpkl('../output/test_df.pkl')
     else:

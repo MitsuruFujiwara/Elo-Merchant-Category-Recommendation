@@ -249,7 +249,7 @@ def historical_transactions(num_rows=None):
     aggs['month_lag'] = ['max','min','mean','var','skew']
     aggs['month_diff'] = ['max','min','mean','var','skew']
     aggs['authorized_flag'] = ['mean']
-    aggs['weekend'] = ['mean', 'min', 'max']
+    aggs['weekend'] = ['mean', 'max']
     aggs['category_1'] = ['mean', 'min']
     aggs['category_2'] = ['mean', 'min']
     aggs['category_3'] = ['mean', 'min']
@@ -327,7 +327,7 @@ def new_merchant_transactions(num_rows=None):
     #Christmas : December 25 2017
     new_merchant_df['Christmas_Day_2017']=(pd.to_datetime('2017-12-25')-new_merchant_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
     #Mothers Day: May 14 2017
-    new_merchant_df['Mothers_Day_2017']=(pd.to_datetime('2017-06-04')-new_merchant_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
+#    new_merchant_df['Mothers_Day_2017']=(pd.to_datetime('2017-06-04')-new_merchant_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
     #fathers day: August 13 2017
     new_merchant_df['fathers_day_2017']=(pd.to_datetime('2017-08-13')-new_merchant_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
     #Childrens day: October 12 2017
@@ -366,7 +366,7 @@ def new_merchant_transactions(num_rows=None):
     aggs['purchase_date'] = ['max','min']
     aggs['month_lag'] = ['max','min','mean','var','skew']
     aggs['month_diff'] = ['max','min','mean','var','skew']
-    aggs['authorized_flag'] = ['mean']
+#    aggs['authorized_flag'] = ['mean']
     aggs['weekend'] = [ 'mean', 'min', 'max']
     aggs['category_1'] = [ 'mean', 'min']
     aggs['category_2'] = [ 'mean', 'min']
@@ -375,7 +375,7 @@ def new_merchant_transactions(num_rows=None):
     aggs['is_holiday'] = [ 'mean']
     aggs['price'] = ['mean','max','min','var','skew']
     aggs['Christmas_Day_2017'] = ['mean']
-    aggs['Mothers_Day_2017'] = ['mean']
+#    aggs['Mothers_Day_2017'] = ['mean']
     aggs['fathers_day_2017'] = ['mean']
     aggs['Children_day_2017'] = ['mean']
     aggs['Valentine_Day_2017'] = ['mean']

@@ -424,6 +424,7 @@ def additional_features(df):
 
     df['card_id_total'] = df['new_card_id_size']+df['hist_card_id_size']
     df['card_id_cnt_total'] = df['new_card_id_count']+df['hist_card_id_count']
+    df['card_id_cnt_ratio'] = df['new_card_id_count']/df['hist_card_id_count']
     df['purchase_amount_total'] = df['new_purchase_amount_sum']+df['hist_purchase_amount_sum']
     df['purchase_amount_mean'] = df['new_purchase_amount_mean']+df['hist_purchase_amount_mean']
     df['purchase_amount_max'] = df['new_purchase_amount_max']+df['hist_purchase_amount_max']
@@ -432,6 +433,7 @@ def additional_features(df):
     df['purchase_amount_skew'] = df['new_purchase_amount_skew']+df['hist_purchase_amount_skew']
     df['purchase_amount_ratio'] = df['new_purchase_amount_sum']/df['hist_purchase_amount_sum']
     df['month_diff_mean'] = df['new_month_diff_mean']+df['hist_month_diff_mean']
+    df['month_diff_ratio'] = df['new_month_diff_mean']/df['hist_month_diff_mean']
 #    df['month_diff_max'] = df['new_month_diff_max']+df['hist_month_diff_max']
 #    df['month_diff_min'] = df['new_month_diff_min']+df['hist_month_diff_min']
     df['month_lag_mean'] = df['new_month_lag_mean']+df['hist_month_lag_mean']
@@ -458,6 +460,9 @@ def additional_features(df):
     df['amount_month_ratio_max']=df['new_amount_month_ratio_max']+df['hist_amount_month_ratio_max']
     df['amount_month_ratio_var']=df['new_amount_month_ratio_var']+df['hist_amount_month_ratio_var']
     df['amount_month_ratio_skew']=df['new_amount_month_ratio_skew']+df['hist_amount_month_ratio_skew']
+    df['new_CLV'] = df['new_card_id_count'] * df['new_purchase_amount_sum'] / df['new_month_diff_mean']
+    df['hist_CLV'] = df['hist_card_id_count'] * df['hist_purchase_amount_sum'] / df['hist_month_diff_mean']
+    df['CLV_ratio'] = df['new_CLV'] / df['hist_CLV']
 
     return df
 

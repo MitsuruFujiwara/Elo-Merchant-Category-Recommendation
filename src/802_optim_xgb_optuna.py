@@ -50,11 +50,12 @@ def objective(trial):
         param['skip_drop'] = trial.suggest_loguniform('skip_drop', 1e-8, 1.0)
 
 #    folds = StratifiedKFold(n_splits=NUM_FOLDS, shuffle=True, random_state=4950)
-
+#    print(folds.split(TRAIN_DF[FEATS], TRAIN_DF['outliers']))
     clf = xgboost.cv(params=param,
                      dtrain=xgb_train,
                      metrics=['rmse'],
                      nfold=NUM_FOLDS,
+#                     stratified=True,
 #                     folds=folds.split(TRAIN_DF[FEATS], TRAIN_DF['outliers']),
                      num_boost_round=10000, # early stopありなのでここは大きめの数字にしてます
                      early_stopping_rounds=200,

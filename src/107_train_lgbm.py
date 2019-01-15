@@ -14,7 +14,7 @@ from contextlib import contextmanager
 from sklearn.model_selection import KFold, StratifiedKFold
 from pandas.core.common import SettingWithCopyWarning
 
-from preprocessing_003 import train_test, historical_transactions, merchants, new_merchant_transactions, additional_features
+from preprocessing_004 import train_test, historical_transactions, merchants, new_merchant_transactions, additional_features
 from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, loadpkl, save2pkl, rmse, submit
 
 ################################################################################
@@ -179,7 +179,7 @@ def main(debug=False, use_pkl=False):
         kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, stratified=False, debug=debug)
 
 if __name__ == "__main__":
-    submission_file_name = "../output/submission.csv"
+    submission_file_name = "../output/submission_lgbm.csv"
     oof_file_name = "../output/oof_lgbm.csv"
     with timer("Full model run"):
         main(debug=False,use_pkl=False)

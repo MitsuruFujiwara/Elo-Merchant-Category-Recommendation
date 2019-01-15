@@ -47,9 +47,9 @@ def train_test(num_rows=None):
     df['first_active_month'] = pd.to_datetime(df['first_active_month'])
 
     # datetime features
-    df['month'] = df['first_active_month'].dt.month.fillna(0).astype(int).astype(object)
+#    df['month'] = df['first_active_month'].dt.month.fillna(0).astype(int).astype(object)
 #    df['year'] = df['first_active_month'].dt.year.fillna(0).astype(int).astype(object)
-    df['dayofweek'] = df['first_active_month'].dt.dayofweek.fillna(0).astype(int).astype(object)
+#    df['dayofweek'] = df['first_active_month'].dt.dayofweek.fillna(0).astype(int).astype(object)
 #    df['weekofyear'] = df['first_active_month'].dt.weekofyear.fillna(0).astype(int).astype(object)
     df['quarter'] = df['first_active_month'].dt.quarter
 #    df['month_year'] = df['month'].astype(str)+'_'+df['year'].astype(str)
@@ -322,7 +322,7 @@ def new_merchant_transactions(num_rows=None):
 
     #ブラジルの休日
     cal = Brazil()
-    new_merchant_df['is_holiday'] = new_merchant_df['purchase_date'].dt.date.apply(cal.is_holiday).astype(int)
+#    new_merchant_df['is_holiday'] = new_merchant_df['purchase_date'].dt.date.apply(cal.is_holiday).astype(int)
 
     # 購入日からイベント日までの経過日数
     #Christmas : December 25 2017
@@ -374,7 +374,7 @@ def new_merchant_transactions(num_rows=None):
     aggs['category_2'] = ['mean', 'min']
     aggs['category_3'] = ['mean', 'min']
     aggs['card_id'] = ['size','count']
-    aggs['is_holiday'] = ['mean']
+#    aggs['is_holiday'] = ['mean']
     aggs['price'] = ['mean','max','min','var','skew']
     aggs['Christmas_Day_2017'] = ['mean']
 #    aggs['Mothers_Day_2017'] = ['mean']

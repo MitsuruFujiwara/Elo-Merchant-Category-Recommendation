@@ -62,7 +62,7 @@ def objective(trial):
                      seed=47
                      )
     gc.collect()
-    return clf['test-rmse-mean'][-1]
+    return clf['test-rmse-mean'].iloc[-1]
 
 if __name__ == '__main__':
     study = optuna.create_study()

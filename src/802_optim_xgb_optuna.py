@@ -49,13 +49,13 @@ def objective(trial):
         param['rate_drop'] = trial.suggest_loguniform('rate_drop', 1e-8, 1.0)
         param['skip_drop'] = trial.suggest_loguniform('skip_drop', 1e-8, 1.0)
 
-    folds = StratifiedKFold(n_splits=NUM_FOLDS, shuffle=True, random_state=4950)
+#    folds = StratifiedKFold(n_splits=NUM_FOLDS, shuffle=True, random_state=4950)
 
     clf = xgboost.cv(params=param,
                      dtrain=xgb_train,
                      metrics=['rmse'],
                      nfold=NUM_FOLDS,
-                     folds=folds.split(TRAIN_DF[FEATS], TRAIN_DF['outliers']),
+#                     folds=folds.split(TRAIN_DF[FEATS], TRAIN_DF['outliers']),
                      num_boost_round=10000, # early stopありなのでここは大きめの数字にしてます
                      early_stopping_rounds=200,
                      verbose_eval=100,

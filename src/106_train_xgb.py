@@ -87,18 +87,14 @@ def kfold_xgboost(train_df, test_df, num_folds, stratified = False, debug= False
                 'eval_metric':'rmse',
                 'silent':1,
                 'eta': 0.01,
-#                'lambda': 0.1,
-#                'min_child_samples': 20,
-#                'feature_fraction': 0.9,
-#                'bagging_freq': 1,
-#                'bagging_fraction': 0.9 ,
-#                'max_depth': 8,
-#                'min_child_weight': 19,
-#                'gamma': 0.089444100759612,
-#                'subsample': 0.91842954303314,
-#                'colsample_bytree': 0.870658058238432,
-#                'colsample_bylevel': 0.995353255250289,
-#                'alpha':19.9615600411437,
+                'max_leaves': 63,
+                'colsample_bytree': 0.5665320670155495,
+                'subsample': 0.9855232997390695,
+                'max_depth': 7,
+                'reg_alpha': 9.677537745007898,
+                'reg_lambda': 8.2532317400459,
+                'gamma': 9.820197773625843,
+                'min_child_weight': 41.9612869171337,
                 'tree_method': 'gpu_hist', # GPU parameter
                 'predictor': 'gpu_predictor', # GPU parameter
                 'seed':int(2**n_fold)
@@ -116,8 +112,8 @@ def kfold_xgboost(train_df, test_df, num_folds, stratified = False, debug= False
         # save model
         reg.save_model('../output/xgb_'+str(n_fold)+'.txt')
 
-        oof_preds[valid_idx] = np.expm1(reg.predict(xgb_test))
-        sub_preds += np.expm1(reg.predict(test_df_dmtrx)) / num_folds
+        oof_preds[valid_idx] = reg.predict(xgb_test)
+        sub_preds += reg.predict(test_df_dmtrx) / folds.n_splits
 
         fold_importance_df = pd.DataFrame.from_dict(reg.get_score(importance_type='gain'), orient='index', columns=['importance'])
         fold_importance_df["feature"] = fold_importance_df.index.tolist()

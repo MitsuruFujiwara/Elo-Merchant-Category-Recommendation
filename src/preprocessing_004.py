@@ -248,7 +248,9 @@ def historical_transactions(num_rows=None):
     aggs['month_lag'] = ['max','min','mean','var','skew']
     aggs['month_diff'] = ['max','min','mean','var','skew']
     aggs['authorized_flag'] = ['mean']
-    aggs['weekend'] = ['mean']
+    aggs['weekend'] = ['mean'] # overwrite
+    aggs['weekday'] = ['mean'] # overwrite
+    aggs['day'] = ['nunique', 'mean', 'min'] # overwrite
     aggs['category_1'] = ['mean']
     aggs['category_2'] = ['mean']
     aggs['category_3'] = ['mean']
@@ -320,7 +322,7 @@ def new_merchant_transactions(num_rows=None):
 
     #ブラジルの休日
     cal = Brazil()
-    new_merchant_df['is_holiday'] = new_merchant_df['purchase_date'].dt.date.apply(cal.is_holiday).astype(int)
+#    new_merchant_df['is_holiday'] = new_merchant_df['purchase_date'].dt.date.apply(cal.is_holiday).astype(int)
 
     # 購入日からイベント日までの経過日数
     #Christmas : December 25 2017
@@ -328,7 +330,7 @@ def new_merchant_transactions(num_rows=None):
     #Mothers Day: May 14 2017
 #    new_merchant_df['Mothers_Day_2017']=(pd.to_datetime('2017-06-04')-new_merchant_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
     #fathers day: August 13 2017
-    new_merchant_df['fathers_day_2017']=(pd.to_datetime('2017-08-13')-new_merchant_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
+#    new_merchant_df['fathers_day_2017']=(pd.to_datetime('2017-08-13')-new_merchant_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
     #Childrens day: October 12 2017
     new_merchant_df['Children_day_2017']=(pd.to_datetime('2017-10-12')-new_merchant_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
     #Valentine's Day : 12th June, 2017
@@ -367,15 +369,17 @@ def new_merchant_transactions(num_rows=None):
     aggs['month_diff'] = ['mean','var','skew']
 #    aggs['authorized_flag'] = ['mean']
     aggs['weekend'] = ['mean']
+    aggs['month'] = ['mean', 'min', 'max']
+    aggs['weekday'] = ['mean', 'min', 'max']
     aggs['category_1'] = ['mean']
     aggs['category_2'] = ['mean']
     aggs['category_3'] = ['mean']
     aggs['card_id'] = ['size','count']
-    aggs['is_holiday'] = [ 'mean']
+#    aggs['is_holiday'] = [ 'mean']
     aggs['price'] = ['mean','max','min','var']
     aggs['Christmas_Day_2017'] = ['mean']
 #    aggs['Mothers_Day_2017'] = ['mean']
-    aggs['fathers_day_2017'] = ['mean']
+#    aggs['fathers_day_2017'] = ['mean']
     aggs['Children_day_2017'] = ['mean']
 #    aggs['Valentine_Day_2017'] = ['mean']
     aggs['Black_Friday_2017'] = ['mean']

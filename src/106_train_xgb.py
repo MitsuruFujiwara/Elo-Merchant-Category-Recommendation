@@ -175,4 +175,4 @@ if __name__ == "__main__":
     submission_file_name = "../output/submission_xgb.csv"
     oof_file_name = "../output/oof_xgb.csv"
     with timer("Full model run"):
-        main(debug=False,use_pkl=True)
+        main(debug=False,use_pkl=False)

@@ -1,3 +1,4 @@
 #!/bin/sh
-python 103_train_lgbm_binary.py
-python 104_train_lgbm_non_outlier.py
+python 106_train_xgb.py
+python 107_train_lgbm.py
+python 201_blend.py

@@ -182,6 +182,9 @@ def historical_transactions(num_rows=None):
     hist_df['installments'].replace(-1, np.nan,inplace=True)
     hist_df['installments'].replace(999, np.nan,inplace=True)
 
+    # trim
+    hist_df['purchase_amount'] = hist_df['purchase_amount'].apply(lambda x: min(x, 0.8))
+
     # Y/Nのカラムを1-0へ変換
     hist_df['authorized_flag'] = hist_df['authorized_flag'].map({'Y': 1, 'N': 0}).astype(int)
     hist_df['category_1'] = hist_df['category_1'].map({'Y': 1, 'N': 0}).astype(int)
@@ -301,6 +304,9 @@ def new_merchant_transactions(num_rows=None):
     new_merchant_df['merchant_id'].fillna('M_ID_00a6ca8a8a',inplace=True)
     new_merchant_df['installments'].replace(-1, np.nan,inplace=True)
     new_merchant_df['installments'].replace(999, np.nan,inplace=True)
+
+    # trim
+    new_merchant_df['purchase_amount'] = new_merchant_df['purchase_amount'].apply(lambda x: min(x, 0.8))
 
     # Y/Nのカラムを1-0へ変換
     new_merchant_df['authorized_flag'] = new_merchant_df['authorized_flag'].map({'Y': 1, 'N': 0}).astype(int)

@@ -236,7 +236,7 @@ def historical_transactions(num_rows=None):
     hist_df = reduce_mem_usage(hist_df)
 
     col_unique =['subsector_id', 'merchant_id', 'merchant_category_id']
-    col_seas = ['month', 'hour', 'weekofyear', 'weekday', 'day']
+    col_seas = ['month', 'hour', 'weekofyear']
 
     aggs = {}
     for col in col_unique:
@@ -253,7 +253,7 @@ def historical_transactions(num_rows=None):
     aggs['authorized_flag'] = ['mean']
     aggs['weekend'] = ['mean'] # overwrite
     aggs['weekday'] = ['mean'] # overwrit
-    aggs['day'] = ['nunique', 'mean', 'min'] # overwrite
+    aggs['day'] = ['nunique', 'mean'] # overwrite
     aggs['category_1'] = ['mean']
     aggs['category_2'] = ['mean']
     aggs['category_3'] = ['mean']
@@ -359,7 +359,7 @@ def new_merchant_transactions(num_rows=None):
     new_merchant_df = reduce_mem_usage(new_merchant_df)
 
     col_unique =['subsector_id', 'merchant_id', 'merchant_category_id']
-    col_seas = ['month', 'hour', 'weekofyear', 'weekday', 'day']
+    col_seas = ['hour', 'weekofyear', 'day']
 
     aggs = {}
     for col in col_unique:

@@ -84,25 +84,21 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
                 'device' : 'gpu',
 #                'gpu_use_dp':True,
                 'task': 'train',
-                'boosting': 'gbdt',
+                'boosting': 'goss',
                 'objective': 'regression',
                 'metric': 'rmse',
                 'learning_rate': 0.01,
-                "lambda_l1": 0.1,
-                "min_child_samples": 20,
-                "feature_fraction": 0.9,
-                "bagging_freq": 1,
-                "bagging_fraction": 0.9 ,
-                "lambda_l1": 0.1,
-#                'num_leaves': 31,
-#                'colsample_bytree': 0.9,
-#                'subsample': 0.805742797052828,
-#                'max_depth': -1,
-#                'reg_alpha': 0.196466392224054,
-#                'reg_lambda': 0.045887453950229,
-#                'min_split_gain': 0.247050274075659,
-#                'min_child_weight': 23.9202696807894,
-#                'min_data_in_leaf': 20,
+                'subsample': 0.9855232997390695,
+                'max_depth': 7,
+                'top_rate': 0.9064148448434349,
+                'num_leaves': 63,
+                'min_child_weight': 41.9612869171337,
+                'other_rate': 0.0721768246018207,
+                'reg_alpha': 9.677537745007898,
+                'colsample_bytree': 0.5665320670155495,
+                'min_split_gain': 9.820197773625843,
+                'reg_lambda': 8.2532317400459,
+                'min_data_in_leaf': 21,
                 'verbose': -1,
                 'seed':int(2**n_fold),
                 'bagging_seed':int(2**n_fold),
@@ -160,7 +156,6 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
 def main(debug=False, use_pkl=False):
     num_rows = 10000 if debug else None
     if use_pkl:
-#        df = loadpkl('../output/df.pkl')
         train_df = loadpkl('../output/train_df.pkl')
         test_df = loadpkl('../output/test_df.pkl')
     else:
@@ -191,4 +186,4 @@ if __name__ == "__main__":
     submission_file_name = "../output/submission.csv"
     oof_file_name = "../output/oof_lgbm.csv"
     with timer("Full model run"):
-        main(debug=False,use_pkl=True)
+        main(debug=False,use_pkl=False)

@@ -346,7 +346,7 @@ def new_merchant_transactions(num_rows=None):
 
     #2018
     #Mothers Day: May 13 2018
-    new_merchant_df['Mothers_Day_2018']=(pd.to_datetime('2018-05-13')-new_merchant_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
+#    new_merchant_df['Mothers_Day_2018']=(pd.to_datetime('2018-05-13')-new_merchant_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
 
     new_merchant_df['month_diff'] = ((datetime.datetime.today() - new_merchant_df['purchase_date']).dt.days)//30
     new_merchant_df['month_diff'] += new_merchant_df['month_lag']
@@ -359,7 +359,7 @@ def new_merchant_transactions(num_rows=None):
     new_merchant_df = reduce_mem_usage(new_merchant_df)
 
     col_unique =['subsector_id', 'merchant_id', 'merchant_category_id']
-    col_seas = ['hour', 'weekofyear', 'day']
+    col_seas = ['hour','day']
 
     aggs = {}
     for col in col_unique:
@@ -377,6 +377,7 @@ def new_merchant_transactions(num_rows=None):
     aggs['weekend'] = ['mean']
     aggs['month'] = ['mean', 'min', 'max']
     aggs['weekday'] = ['mean', 'min', 'max']
+    aggs['weekofyear']=['mean', 'min', 'max']
     aggs['category_1'] = ['mean']
     aggs['category_2'] = ['mean']
     aggs['category_3'] = ['mean']
@@ -389,7 +390,7 @@ def new_merchant_transactions(num_rows=None):
     aggs['Children_day_2017'] = ['mean']
 #    aggs['Valentine_Day_2017'] = ['mean']
     aggs['Black_Friday_2017'] = ['mean']
-    aggs['Mothers_Day_2018'] = ['mean']
+#    aggs['Mothers_Day_2018'] = ['mean']
     aggs['duration']=['mean','min','max','var','skew']
     aggs['amount_month_ratio']=['mean','min','max','var','skew']
 

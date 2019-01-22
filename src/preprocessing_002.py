@@ -192,7 +192,7 @@ def historical_transactions(merchants_df, num_rows=None):
     # Y/Nのカラムを1-0へ変換
     hist_df['authorized_flag'] = hist_df['authorized_flag'].map({'Y': 1, 'N': 0}).astype(int)
     hist_df['category_1'] = hist_df['category_1'].map({'Y': 1, 'N': 0}).astype(int)
-    hist_df['category_3'] = hist_df['category_3'].map({'A':0, 'B':1, 'C':2})
+    hist_df['category_3'] = hist_df['category_3'].map({'A':0, 'B':1, 'C':2}).astype(int)
 
     # datetime features
     hist_df['purchase_date'] = pd.to_datetime(hist_df['purchase_date'])

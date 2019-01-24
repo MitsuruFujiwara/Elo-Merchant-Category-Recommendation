@@ -182,7 +182,8 @@ def historical_transactions(num_rows=None):
     hist_df['installments'].replace(-1, np.nan,inplace=True)
     hist_df['installments'].replace(999, np.nan,inplace=True)
 
-    # trim
+    # outliers of purchase amount
+    hist_df['purchase_amount_outlier'] = (hist_df['purchase_amount']>0.8).astype(int)
     hist_df['purchase_amount'] = hist_df['purchase_amount'].apply(lambda x: min(x, 0.8))
 
     # Y/Nのカラムを1-0へ変換
@@ -202,6 +203,8 @@ def historical_transactions(num_rows=None):
 
     # additional features
     hist_df['price'] = hist_df['purchase_amount'] / hist_df['installments']
+    hist_df['purchase_amount_approved'] = hist_df['purchase_amount'] * hist_df['authorized_flag']
+    hist_df['purchase_amount_approved_ratio'] = hist_df['purchase_amount_approved'] /hist_df['purchase_amount']
 
     #ブラジルの休日
     cal = Brazil()
@@ -246,13 +249,15 @@ def historical_transactions(num_rows=None):
         aggs[col] = ['nunique', 'mean', 'min', 'max']
 
     aggs['purchase_amount'] = ['sum','max','min','mean','var','skew']
+    aggs['purchase_amount_approved'] = ['sum','max','min','mean','var','skew']
+    aggs['purchase_amount_approved_ratio'] = ['mean']
     aggs['installments'] = ['sum','max','mean','var','skew']
     aggs['purchase_date'] = ['max','min']
     aggs['month_lag'] = ['max','min','mean','var','skew']
     aggs['month_diff'] = ['max','min','mean','var','skew']
     aggs['authorized_flag'] = ['mean']
     aggs['weekend'] = ['mean'] # overwrite
-    aggs['weekday'] = ['mean'] # overwrit
+    aggs['weekday'] = ['mean'] # overwrite
     aggs['day'] = ['nunique', 'mean', 'min'] # overwrite
     aggs['category_1'] = ['mean']
     aggs['category_2'] = ['mean']
@@ -260,6 +265,7 @@ def historical_transactions(num_rows=None):
     aggs['card_id'] = ['size','count']
     aggs['is_holiday'] = ['mean']
     aggs['price'] = ['sum','mean','max','min','var']
+    aggs['purchase_amount_outlier']=['mean']
     aggs['Christmas_Day_2017'] = ['mean']
     aggs['Mothers_Day_2017'] = ['mean']
     aggs['fathers_day_2017'] = ['mean']
@@ -305,7 +311,8 @@ def new_merchant_transactions(num_rows=None):
     new_merchant_df['installments'].replace(-1, np.nan,inplace=True)
     new_merchant_df['installments'].replace(999, np.nan,inplace=True)
 
-    # trim
+    # outliers of purchase amount
+    new_merchant_df['purchase_amount_outlier'] = (new_merchant_df['purchase_amount']>0.8).astype(int)
     new_merchant_df['purchase_amount'] = new_merchant_df['purchase_amount'].apply(lambda x: min(x, 0.8))
 
     # Y/Nのカラムを1-0へ変換
@@ -325,6 +332,8 @@ def new_merchant_transactions(num_rows=None):
 
     # additional features
     new_merchant_df['price'] = new_merchant_df['purchase_amount'] / new_merchant_df['installments']
+    new_merchant_df['purchase_amount_approved'] = new_merchant_df['purchase_amount'] * new_merchant_df['authorized_flag']
+    new_merchant_df['purchase_amount_approved_ratio'] = new_merchant_df['purchase_amount_approved']/new_merchant_df['purchase_amount']
 
     #ブラジルの休日
     cal = Brazil()
@@ -369,6 +378,8 @@ def new_merchant_transactions(num_rows=None):
         aggs[col] = ['nunique', 'mean', 'min', 'max']
 
     aggs['purchase_amount'] = ['sum','max','min','mean','var','skew']
+    aggs['purchase_amount_approved'] = ['sum','max','min','mean','var','skew']
+    aggs['purchase_amount_approved_ratio']=['mean']
     aggs['installments'] = ['sum','max','mean','var','skew']
     aggs['purchase_date'] = ['max','min']
     aggs['month_lag'] = ['max','min','mean','var','skew']
@@ -383,6 +394,7 @@ def new_merchant_transactions(num_rows=None):
     aggs['card_id'] = ['size','count']
 #    aggs['is_holiday'] = [ 'mean']
     aggs['price'] = ['mean','max','min','var']
+    aggs['purchase_amount_outlier']=['mean']
     aggs['Christmas_Day_2017'] = ['mean']
 #    aggs['Mothers_Day_2017'] = ['mean']
 #    aggs['fathers_day_2017'] = ['mean']
@@ -431,14 +443,12 @@ def additional_features(df):
 
     df['card_id_total'] = df['new_card_id_size']+df['hist_card_id_size']
     df['card_id_cnt_total'] = df['new_card_id_count']+df['hist_card_id_count']
-    df['card_id_cnt_ratio'] = df['new_card_id_count']/df['hist_card_id_count']
     df['purchase_amount_total'] = df['new_purchase_amount_sum']+df['hist_purchase_amount_sum']
     df['purchase_amount_mean'] = df['new_purchase_amount_mean']+df['hist_purchase_amount_mean']
     df['purchase_amount_max'] = df['new_purchase_amount_max']+df['hist_purchase_amount_max']
     df['purchase_amount_min'] = df['new_purchase_amount_min']+df['hist_purchase_amount_min']
     df['purchase_amount_ratio'] = df['new_purchase_amount_sum']/df['hist_purchase_amount_sum']
     df['month_diff_mean'] = df['new_month_diff_mean']+df['hist_month_diff_mean']
-    df['month_diff_ratio'] = df['new_month_diff_mean']/df['hist_month_diff_mean']
 #    df['month_diff_max'] = df['new_month_diff_max']+df['hist_month_diff_max']
 #    df['month_diff_min'] = df['new_month_diff_min']+df['hist_month_diff_min']
     df['month_lag_mean'] = df['new_month_lag_mean']+df['hist_month_lag_mean']
@@ -449,19 +459,9 @@ def additional_features(df):
     df['installments_total'] = df['new_installments_sum']+df['hist_installments_sum']
     df['installments_mean'] = df['new_installments_mean']+df['hist_installments_mean']
     df['installments_max'] = df['new_installments_max']+df['hist_installments_max']
-    df['installments_ratio'] = df['new_installments_sum']/df['hist_installments_sum']
     df['price_total'] = df['purchase_amount_total'] / df['installments_total']
     df['price_mean'] = df['purchase_amount_mean'] / df['installments_mean']
     df['price_max'] = df['purchase_amount_max'] / df['installments_max']
-    df['duration_mean'] = df['new_duration_mean']+df['hist_duration_mean']
-    df['duration_min'] = df['new_duration_min']+df['hist_duration_min']
-    df['duration_max'] = df['new_duration_max']+df['hist_duration_max']
-    df['amount_month_ratio_mean']=df['new_amount_month_ratio_mean']+df['hist_amount_month_ratio_mean']
-    df['amount_month_ratio_min']=df['new_amount_month_ratio_min']+df['hist_amount_month_ratio_min']
-    df['amount_month_ratio_max']=df['new_amount_month_ratio_max']+df['hist_amount_month_ratio_max']
-    df['new_CLV'] = df['new_card_id_count'] * df['new_purchase_amount_sum'] / df['new_month_diff_mean']
-    df['hist_CLV'] = df['hist_card_id_count'] * df['hist_purchase_amount_sum'] / df['hist_month_diff_mean']
-    df['CLV_ratio'] = df['new_CLV'] / df['hist_CLV']
 
     return df
 

@@ -203,8 +203,9 @@ def historical_transactions(num_rows=None):
 
     # additional features
     hist_df['price'] = hist_df['purchase_amount'] / hist_df['installments']
-    hist_df['purchase_amount_approved'] = hist_df['purchase_amount'] * hist_df['authorized_flag']
-    hist_df['purchase_amount_approved_ratio'] = hist_df['purchase_amount_approved'] /hist_df['purchase_amount']
+    hist_df['purchase_amount_unapproved'] = hist_df['purchase_amount'] * (1-hist_df['authorized_flag'])
+    hist_df['purchase_amount'] = hist_df['purchase_amount'] * hist_df['authorized_flag'] # approvedのみ使用
+    hist_df['purchase_amount_approved_ratio'] = hist_df['purchase_amount'] /hist_df['purchase_amount_unapproved']
 
     #ブラジルの休日
     cal = Brazil()
@@ -249,7 +250,7 @@ def historical_transactions(num_rows=None):
         aggs[col] = ['nunique', 'mean', 'min', 'max']
 
     aggs['purchase_amount'] = ['sum','max','min','mean','var','skew']
-    aggs['purchase_amount_approved'] = ['sum','max','min','mean','var','skew']
+    aggs['purchase_amount_unapproved'] = ['sum','max','min','mean','var','skew']
     aggs['purchase_amount_approved_ratio'] = ['mean']
     aggs['installments'] = ['sum','max','mean','var','skew']
     aggs['purchase_date'] = ['max','min']
@@ -332,8 +333,9 @@ def new_merchant_transactions(num_rows=None):
 
     # additional features
     new_merchant_df['price'] = new_merchant_df['purchase_amount'] / new_merchant_df['installments']
-    new_merchant_df['purchase_amount_approved'] = new_merchant_df['purchase_amount'] * new_merchant_df['authorized_flag']
-    new_merchant_df['purchase_amount_approved_ratio'] = new_merchant_df['purchase_amount_approved']/new_merchant_df['purchase_amount']
+    new_merchant_df['purchase_amount_unapproved'] = new_merchant_df['purchase_amount'] *(1- new_merchant_df['authorized_flag'])
+    new_merchant_df['purchase_amount'] = new_merchant_df['purchase_amount'] * new_merchant_df['authorized_flag'] # approvedのみ使用
+    new_merchant_df['purchase_amount_approved_ratio'] = new_merchant_df['purchase_amount']/new_merchant_df['purchase_amount_unapproved']
 
     #ブラジルの休日
     cal = Brazil()
@@ -378,7 +380,7 @@ def new_merchant_transactions(num_rows=None):
         aggs[col] = ['nunique', 'mean', 'min', 'max']
 
     aggs['purchase_amount'] = ['sum','max','min','mean','var','skew']
-    aggs['purchase_amount_approved'] = ['sum','max','min','mean','var','skew']
+    aggs['purchase_amount_unapproved'] = ['sum','max','min','mean','var','skew']
     aggs['purchase_amount_approved_ratio']=['mean']
     aggs['installments'] = ['sum','max','mean','var','skew']
     aggs['purchase_date'] = ['max','min']

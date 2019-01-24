@@ -56,9 +56,9 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
 
     # Cross validation model
     if stratified:
-        folds = StratifiedKFold(n_splits= num_folds, shuffle=True, random_state=4950)
+        folds = StratifiedKFold(n_splits= num_folds, shuffle=True, random_state=326)
     else:
-        folds = KFold(n_splits= num_folds, shuffle=True, random_state=4950)
+        folds = KFold(n_splits= num_folds, shuffle=True, random_state=326)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
@@ -182,4 +182,4 @@ if __name__ == "__main__":
     submission_file_name = "../output/submission_lgbm.csv"
     oof_file_name = "../output/oof_lgbm.csv"
     with timer("Full model run"):
-        main(debug=False,use_pkl=True)
+        main(debug=False,use_pkl=False)

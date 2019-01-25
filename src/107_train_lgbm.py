@@ -143,6 +143,10 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
         # 提出データの予測値を保存
         test_df.loc[:,'target'] = sub_preds
         test_df = test_df.reset_index()
+
+        # targetが一定値以下のものをoutlierで埋める
+        q = test_df['target'].quantile(.001)
+        test_df.loc[:,'target']=test_df['target'].apply(lambda x: x if x > q else -33.21928095)
         test_df[['card_id', 'target']].to_csv(submission_file_name, index=False)
 
         # out of foldの予測値を保存
@@ -182,4 +186,4 @@ if __name__ == "__main__":
     submission_file_name = "../output/submission_lgbm.csv"
     oof_file_name = "../output/oof_lgbm.csv"
     with timer("Full model run"):
-        main(debug=False,use_pkl=False)
+        main(debug=False,use_pkl=True)

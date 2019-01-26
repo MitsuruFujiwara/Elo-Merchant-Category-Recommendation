@@ -182,14 +182,24 @@ def historical_transactions(num_rows=None):
     hist_df['installments'].replace(-1, np.nan,inplace=True)
     hist_df['installments'].replace(999, np.nan,inplace=True)
 
-    # outliers of purchase amount
-    hist_df['purchase_amount_outlier'] = (hist_df['purchase_amount']>0.8).astype(int)
-    hist_df['purchase_amount'] = hist_df['purchase_amount'].apply(lambda x: min(x, 0.8))
-
     # Y/Nのカラムを1-0へ変換
     hist_df['authorized_flag'] = hist_df['authorized_flag'].map({'Y': 1, 'N': 0}).astype(int)
     hist_df['category_1'] = hist_df['category_1'].map({'Y': 1, 'N': 0}).astype(int)
     hist_df['category_3'] = hist_df['category_3'].map({'A':0, 'B':1, 'C':2})
+
+    # category
+    hist_df['category_1_approved'] = hist_df['category_1'] * hist_df['authorized_flag']
+    hist_df['category_1_unapproved'] = hist_df['category_1'] * (1-hist_df['authorized_flag'])
+    hist_df['category_2_approved'] = hist_df['category_2'] * hist_df['authorized_flag']
+    hist_df['category_2_unapproved'] = hist_df['category_2'] * (1-hist_df['authorized_flag'])
+    hist_df['category_3_approved'] = hist_df['category_3'] * hist_df['authorized_flag']
+    hist_df['category_3_unapproved'] = hist_df['category_3'] * (1-hist_df['authorized_flag'])
+
+    # purchase amount
+    hist_df['purchase_amount_outlier'] = (hist_df['purchase_amount']>0.8).astype(int)
+    hist_df['purchase_amount'] = hist_df['purchase_amount'].apply(lambda x: min(x, 0.8))
+    hist_df['purchase_amount_approved'] = hist_df['purchase_amount'] * hist_df['authorized_flag']
+    hist_df['purchase_amount_unapproved'] = hist_df['purchase_amount'] * (1-hist_df['authorized_flag'])
 
     # datetime features
     hist_df['purchase_date'] = pd.to_datetime(hist_df['purchase_date'])
@@ -201,11 +211,22 @@ def historical_transactions(num_rows=None):
     hist_df['weekday'] = hist_df['purchase_date'].dt.weekday
     hist_df['weekend'] = (hist_df['purchase_date'].dt.weekday >=5).astype(int)
 
+    # month diff
+    hist_df['month_diff'] = ((pd.to_datetime('2018-03-01') - hist_df['purchase_date']).dt.days)//30
+    hist_df['month_diff'] += hist_df['month_lag']
+    hist_df['month_diff_approved'] = hist_df['month_diff'] * hist_df['authorized_flag']
+    hist_df['month_diff_unapproved'] = hist_df['month_diff'] * (1-hist_df['authorized_flag'])
+
+    # month lag
+    hist_df['month_lag_approved'] = hist_df['month_lag'] * hist_df['authorized_flag']
+    hist_df['month_lag_unapproved'] = hist_df['month_lag'] * (1-hist_df['authorized_flag'])
+
+    # installments
+    hist_df['installments_approved'] = hist_df['installments'] * hist_df['authorized_flag']
+    hist_df['installments_unapproved'] = hist_df['installments'] * (1-hist_df['authorized_flag'])
+
     # additional features
     hist_df['price'] = hist_df['purchase_amount'] / hist_df['installments']
-    hist_df['purchase_amount_unapproved'] = hist_df['purchase_amount'] * (1-hist_df['authorized_flag'])
-    hist_df['purchase_amount'] = hist_df['purchase_amount'] * hist_df['authorized_flag'] # approvedのみ使用
-    hist_df['purchase_amount_approved_ratio'] = hist_df['purchase_amount'] /hist_df['purchase_amount_unapproved']
 
     #ブラジルの休日
     cal = Brazil()
@@ -229,12 +250,13 @@ def historical_transactions(num_rows=None):
     #Mothers Day: May 13 2018
     hist_df['Mothers_Day_2018']=(pd.to_datetime('2018-05-13')-hist_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
 
-    hist_df['month_diff'] = ((datetime.datetime.today() - hist_df['purchase_date']).dt.days)//30
-    hist_df['month_diff'] += hist_df['month_lag']
-
     # additional features
     hist_df['duration'] = hist_df['purchase_amount']*hist_df['month_diff']
+    hist_df['duration_approved'] = hist_df['duration']*hist_df['authorized_flag']
+    hist_df['duration_unapproved'] = hist_df['duration']*(1-hist_df['authorized_flag'])
     hist_df['amount_month_ratio'] = hist_df['purchase_amount']/hist_df['month_diff']
+    hist_df['amount_month_ratio_approved'] = hist_df['amount_month_ratio']*hist_df['authorized_flag']
+    hist_df['amount_month_ratio_unapproved'] = hist_df['amount_month_ratio']*(1-hist_df['authorized_flag'])
 
     # memory usage削減
     hist_df = reduce_mem_usage(hist_df)
@@ -250,19 +272,32 @@ def historical_transactions(num_rows=None):
         aggs[col] = ['nunique', 'mean', 'min', 'max']
 
     aggs['purchase_amount'] = ['sum','max','min','mean','var','skew']
+    aggs['purchase_amount_approved'] = ['sum','max','min','mean','var','skew']
     aggs['purchase_amount_unapproved'] = ['sum','max','min','mean','var','skew']
-    aggs['purchase_amount_approved_ratio'] = ['mean']
+    aggs['purchase_amount_outlier'] = ['mean']
     aggs['installments'] = ['sum','max','mean','var','skew']
+    aggs['installments_approved'] = ['sum','max','mean','var','skew']
+    aggs['installments_unapproved'] = ['sum','max','mean','var','skew']
     aggs['purchase_date'] = ['max','min']
     aggs['month_lag'] = ['max','min','mean','var','skew']
+    aggs['month_lag_approved'] = ['max','min','mean','var','skew']
+    aggs['month_lag_unapproved'] = ['max','min','mean','var','skew']
     aggs['month_diff'] = ['max','min','mean','var','skew']
-    aggs['authorized_flag'] = ['mean']
+    aggs['month_diff_approved'] = ['max','min','mean','var','skew']
+    aggs['month_diff_unapproved'] = ['max','min','mean','var','skew']
+    aggs['authorized_flag'] = ['mean', 'sum']
     aggs['weekend'] = ['mean'] # overwrite
     aggs['weekday'] = ['mean'] # overwrite
     aggs['day'] = ['nunique', 'mean', 'min'] # overwrite
     aggs['category_1'] = ['mean']
+    aggs['category_1_approved'] = ['mean']
+    aggs['category_1_unapproved'] = ['mean']
     aggs['category_2'] = ['mean']
+    aggs['category_2_approved'] = ['mean']
+    aggs['category_2_unapproved'] = ['mean']
     aggs['category_3'] = ['mean']
+    aggs['category_3_approved'] = ['mean']
+    aggs['category_3_unapproved'] = ['mean']
     aggs['card_id'] = ['size','count']
     aggs['is_holiday'] = ['mean']
     aggs['price'] = ['sum','mean','max','min','var']
@@ -275,7 +310,11 @@ def historical_transactions(num_rows=None):
     aggs['Black_Friday_2017'] = ['mean']
     aggs['Mothers_Day_2018'] = ['mean']
     aggs['duration']=['mean','min','max','var','skew']
+    aggs['duration_approved']=['mean','min','max','var','skew']
+    aggs['duration_unapproved']=['mean','min','max','var','skew']
     aggs['amount_month_ratio']=['mean','min','max','var','skew']
+    aggs['amount_month_ratio_approved']=['mean','min','max','var','skew']
+    aggs['amount_month_ratio_unapproved']=['mean','min','max','var','skew']
 
     for col in ['category_2','category_3']:
         hist_df[col+'_mean'] = hist_df.groupby([col])['purchase_amount'].transform('mean')
@@ -312,10 +351,6 @@ def new_merchant_transactions(num_rows=None):
     new_merchant_df['installments'].replace(-1, np.nan,inplace=True)
     new_merchant_df['installments'].replace(999, np.nan,inplace=True)
 
-    # outliers of purchase amount
-    new_merchant_df['purchase_amount_outlier'] = (new_merchant_df['purchase_amount']>0.8).astype(int)
-    new_merchant_df['purchase_amount'] = new_merchant_df['purchase_amount'].apply(lambda x: min(x, 0.8))
-
     # Y/Nのカラムを1-0へ変換
     new_merchant_df['authorized_flag'] = new_merchant_df['authorized_flag'].map({'Y': 1, 'N': 0}).astype(int)
     new_merchant_df['category_1'] = new_merchant_df['category_1'].map({'Y': 1, 'N': 0}).astype(int)
@@ -331,11 +366,15 @@ def new_merchant_transactions(num_rows=None):
     new_merchant_df['weekday'] = new_merchant_df['purchase_date'].dt.weekday
     new_merchant_df['weekend'] = (new_merchant_df['purchase_date'].dt.weekday >=5).astype(int)
 
+    new_merchant_df['month_diff'] = ((pd.to_datetime('2018-03-01') - new_merchant_df['purchase_date']).dt.days)//30
+    new_merchant_df['month_diff'] += new_merchant_df['month_lag']
+
+    # purchase amount
+    new_merchant_df['purchase_amount_outlier'] = (new_merchant_df['purchase_amount']>0.8).astype(int)
+    new_merchant_df['purchase_amount'] = new_merchant_df['purchase_amount'].apply(lambda x: min(x, 0.8))
+
     # additional features
     new_merchant_df['price'] = new_merchant_df['purchase_amount'] / new_merchant_df['installments']
-    new_merchant_df['purchase_amount_unapproved'] = new_merchant_df['purchase_amount'] *(1- new_merchant_df['authorized_flag'])
-    new_merchant_df['purchase_amount'] = new_merchant_df['purchase_amount'] * new_merchant_df['authorized_flag'] # approvedのみ使用
-    new_merchant_df['purchase_amount_approved_ratio'] = new_merchant_df['purchase_amount']/new_merchant_df['purchase_amount_unapproved']
 
     #ブラジルの休日
     cal = Brazil()
@@ -359,9 +398,6 @@ def new_merchant_transactions(num_rows=None):
     #Mothers Day: May 13 2018
     new_merchant_df['Mothers_Day_2018']=(pd.to_datetime('2018-05-13')-new_merchant_df['purchase_date']).dt.days.apply(lambda x: x if x > 0 and x < 100 else 0)
 
-    new_merchant_df['month_diff'] = ((datetime.datetime.today() - new_merchant_df['purchase_date']).dt.days)//30
-    new_merchant_df['month_diff'] += new_merchant_df['month_lag']
-
     # additional features
     new_merchant_df['duration'] = new_merchant_df['purchase_amount']*new_merchant_df['month_diff']
     new_merchant_df['amount_month_ratio'] = new_merchant_df['purchase_amount']/new_merchant_df['month_diff']
@@ -380,8 +416,7 @@ def new_merchant_transactions(num_rows=None):
         aggs[col] = ['nunique', 'mean', 'min', 'max']
 
     aggs['purchase_amount'] = ['sum','max','min','mean','var','skew']
-    aggs['purchase_amount_unapproved'] = ['sum','max','min','mean','var','skew']
-    aggs['purchase_amount_approved_ratio']=['mean']
+    aggs['purchase_amount_outlier'] = ['mean']
     aggs['installments'] = ['sum','max','mean','var','skew']
     aggs['purchase_date'] = ['max','min']
     aggs['month_lag'] = ['max','min','mean','var','skew']

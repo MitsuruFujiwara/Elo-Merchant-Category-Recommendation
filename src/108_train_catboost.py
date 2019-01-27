@@ -1,6 +1,6 @@
 
+import catboost as cb
 import gc
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -8,13 +8,12 @@ import pandas as pd
 import seaborn as sns
 import time
 import warnings
-import xgboost as xgb
 
 from contextlib import contextmanager
 from sklearn.model_selection import KFold, StratifiedKFold
 from pandas.core.common import SettingWithCopyWarning
 
-from preprocessing_003 import train_test, historical_transactions, merchants, new_merchant_transactions, additional_features
+from preprocessing_001 import train_test, historical_transactions, merchants, new_merchant_transactions, additional_features
 from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, loadpkl, save2pkl, rmse, submit
 
 ################################################################################
@@ -42,13 +41,13 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
 
     plt.figure(figsize=(8, 10))
     sns.barplot(x="importance", y="feature", data=best_features.sort_values(by="importance", ascending=False))
-    plt.title('XGBoost Features (avg over folds)')
+    plt.title('CatBoost Features (avg over folds)')
     plt.tight_layout()
     plt.savefig(outputpath)
 
-# XGBoost GBDT with KFold or Stratified KFold
-def kfold_xgboost(train_df, test_df, num_folds, stratified = False, debug= False):
-    print("Starting XGBoost. Train shape: {}, test shape: {}".format(train_df.shape, test_df.shape))
+# CatBoost with KFold or Stratified KFold
+def kfold_catboost(train_df, test_df, num_folds, stratified = False, debug= False):
+    print("Starting CatBoost. Train shape: {}, test shape: {}".format(train_df.shape, test_df.shape))
 
     # save pkl
     save2pkl('../output/train_df.pkl', train_df)
@@ -66,57 +65,42 @@ def kfold_xgboost(train_df, test_df, num_folds, stratified = False, debug= False
     feature_importance_df = pd.DataFrame()
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
 
-    # final predict用にdmatrix形式のtest dfを作っておきます
-    test_df_dmtrx = xgb.DMatrix(test_df[feats])
-
     # k-fold
     for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], train_df['outliers'])):
         train_x, train_y = train_df[feats].iloc[train_idx], train_df['target'].iloc[train_idx]
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['target'].iloc[valid_idx]
 
         # set data structure
-        xgb_train = xgb.DMatrix(train_x,
-                                label=train_y)
-        xgb_test = xgb.DMatrix(valid_x,
-                               label=valid_y)
+        cb_train = cb.Pool(train_x, label=train_y)
+        cb_test = cb.Pool(valid_x, label=valid_y)
 
-        # params
-        params = {
-                'objective':'gpu:reg:linear', # GPU parameter
-                'booster': 'gbtree',
-                'eval_metric':'rmse',
-                'silent':1,
-                'eta': 0.01,
-                'max_leaves': 63,
-                'colsample_bytree': 0.5665320670155495,
-                'subsample': 0.9855232997390695,
-                'max_depth': 7,
-                'reg_alpha': 9.677537745007898,
-                'reg_lambda': 8.2532317400459,
-                'gamma': 9.820197773625843,
-                'min_child_weight': 41.9612869171337,
-                'tree_method': 'gpu_hist', # GPU parameter
-                'predictor': 'gpu_predictor', # GPU parameter
-                'seed':int(2**n_fold)
+        # パラメータは適当です
+        params ={
+                'task_type' : 'GPU',
+                'loss_function': 'RMSE',
+                'custom_metric': 'RMSE',
+                'eval_metric': 'RMSE',
+                'learning_rate': 0.01,
+                'early_stopping_rounds':200,
+                'random_seed': int(2**n_fold)
                 }
 
-        reg = xgb.train(
-                        params,
-                        xgb_train,
-                        num_boost_round=10000,
-                        evals=[(xgb_train,'train'),(xgb_test,'test')],
-                        early_stopping_rounds= 200,
-                        verbose_eval=100
-                        )
+        reg = cb.train(
+                       params,
+                       cb_train,
+                       num_boost_round=10000,
+                       eval_set=[cb_train, cb_test]
+                       )
 
         # save model
-        reg.save_model('../output/xgb_'+str(n_fold)+'.txt')
+        reg.save_model('../output/cb_'+str(n_fold)+'.txt')
 
-        oof_preds[valid_idx] = reg.predict(xgb_test)
-        sub_preds += reg.predict(test_df_dmtrx) / folds.n_splits
+        oof_preds[valid_idx] = reg.predict(valid_x)
+        sub_preds += reg.predict(test_df[feats]) / folds.n_splits
 
-        fold_importance_df = pd.DataFrame.from_dict(reg.get_score(importance_type='gain'), orient='index', columns=['importance'])
-        fold_importance_df["feature"] = fold_importance_df.index.tolist()
+        fold_importance_df = pd.DataFrame()
+        fold_importance_df["feature"] = feats
+        fold_importance_df["importance"] = np.log1p(reg.feature_importances_)
         fold_importance_df["fold"] = n_fold + 1
         feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
         print('Fold %2d RMSE : %.6f' % (n_fold + 1, rmse(valid_y, oof_preds[valid_idx])))
@@ -129,8 +113,8 @@ def kfold_xgboost(train_df, test_df, num_folds, stratified = False, debug= False
 
     # display importances
     display_importances(feature_importance_df,
-                        '../output/xgb_importances.png',
-                        '../output/feature_importance_xgb.csv')
+                        '../output/cb_importances.png',
+                        '../output/feature_importance_cb.csv')
 
     if not debug:
         # 提出データの予測値を保存
@@ -138,7 +122,7 @@ def kfold_xgboost(train_df, test_df, num_folds, stratified = False, debug= False
         test_df = test_df.reset_index()
 
         # targetが一定値以下のものをoutlierで埋める
-        q_test = test_df['target'].quantile(.0007)
+        q_test = test_df['target'].quantile(.0005)
         test_df.loc[:,'target']=test_df['target'].apply(lambda x: x if x > q_test else -33.21928095)
         test_df[['card_id', 'target']].to_csv(submission_file_name, index=False)
 
@@ -147,7 +131,7 @@ def kfold_xgboost(train_df, test_df, num_folds, stratified = False, debug= False
         train_df = train_df.reset_index()
 
         # targetが一定値以下のものをoutlierで埋める
-        q_train = train_df['OOF_PRED'].quantile(.0007)
+        q_train = train_df['OOF_PRED'].quantile(.0005)
         train_df.loc[:,'OOF_PRED'] = train_df['OOF_PRED'].apply(lambda x: x if x > q_train else -33.21928095)
         train_df[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
 
@@ -156,7 +140,7 @@ def kfold_xgboost(train_df, test_df, num_folds, stratified = False, debug= False
         line_notify('Adjusted Full RMSE score %.6f' % full_rmse_adj)
 
         # API経由でsubmit
-        submit(submission_file_name, comment='model106 cv: %.6f' % full_rmse)
+        submit(submission_file_name, comment='model101 cv: %.6f' % full_rmse_adj)
 
 def main(debug=False, use_pkl=False):
     num_rows = 10000 if debug else None
@@ -180,11 +164,11 @@ def main(debug=False, use_pkl=False):
             test_df = df[df['target'].isnull()]
             del df
             gc.collect()
-    with timer("Run XGBoost with kfold"):
-        kfold_xgboost(train_df, test_df, num_folds=NUM_FOLDS, stratified=False, debug=debug)
+    with timer("Run CatBoost with kfold"):
+        kfold_catboost(train_df, test_df, num_folds=NUM_FOLDS, stratified=False, debug=debug)
 
 if __name__ == "__main__":
-    submission_file_name = "../output/submission_xgb.csv"
-    oof_file_name = "../output/oof_xgb.csv"
+    submission_file_name = "../output/submission_cb.csv"
+    oof_file_name = "../output/oof_cb.csv"
     with timer("Full model run"):
-        main(debug=False,use_pkl=True)
+        main(debug=True,use_pkl=True)

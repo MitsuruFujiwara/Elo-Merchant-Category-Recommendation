@@ -55,9 +55,9 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
 
     # Cross validation model
     if stratified:
-        folds = StratifiedKFold(n_splits= num_folds, shuffle=True, random_state=326)
+        folds = StratifiedKFold(n_splits= num_folds, shuffle=True, random_state=4950)
     else:
-        folds = KFold(n_splits= num_folds, shuffle=True, random_state=326)
+        folds = KFold(n_splits= num_folds, shuffle=True, random_state=4950)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
@@ -144,7 +144,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
         test_df = test_df.reset_index()
 
         # targetが一定値以下のものをoutlierで埋める
-        q_test = test_df['target'].quantile(.0008)
+        q_test = test_df['target'].quantile(.0001)
         test_df.loc[:,'target']=test_df['target'].apply(lambda x: x if x > q_test else -33.21928095)
         test_df[['card_id', 'target']].to_csv(submission_file_name, index=False)
 
@@ -153,7 +153,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
         train_df = train_df.reset_index()
 
         # targetが一定値以下のものをoutlierで埋める
-        q_train = train_df['OOF_PRED'].quantile(.0008)
+        q_train = train_df['OOF_PRED'].quantile(.0001)
         train_df.loc[:,'OOF_PRED'] = train_df['OOF_PRED'].apply(lambda x: x if x > q_train else -33.21928095)
         train_df[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
 
@@ -162,7 +162,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
         line_notify('Adjusted Full RMSE score %.6f' % full_rmse_adj)
 
         # API経由でsubmit
-        submit(submission_file_name, comment='model107 cv: %.6f' % full_rmse)
+#        submit(submission_file_name, comment='model107 cv: %.6f' % full_rmse)
 
 
 def main(debug=False, use_pkl=False):

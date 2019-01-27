@@ -16,8 +16,7 @@ NUM_FOLDS = 11
 FEATS_EXCLUDED = ['first_active_month', 'target', 'card_id', 'outliers',
                   'hist_purchase_date_max', 'hist_purchase_date_min', 'hist_card_id_size',
                   'new_purchase_date_max', 'new_purchase_date_min', 'new_card_id_size',
-                  'Outlier_Likelyhood', 'OOF_PRED', 'outliers_pred', 'month_0',
-                  'feature2', 'feature3']
+                  'Outlier_Likelyhood', 'OOF_PRED', 'outliers_pred', 'month_0']
 
 COMPETITION_NAME = 'elo-merchant-category-recommendation'
 

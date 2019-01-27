@@ -144,7 +144,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
         test_df = test_df.reset_index()
 
         # targetが一定値以下のものをoutlierで埋める
-        q_test = test_df['target'].quantile(.0005)
+        q_test = test_df['target'].quantile(.0007)
         test_df.loc[:,'target']=test_df['target'].apply(lambda x: x if x > q_test else -33.21928095)
         test_df[['card_id', 'target']].to_csv(submission_file_name, index=False)
 
@@ -153,7 +153,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
         train_df = train_df.reset_index()
 
         # targetが一定値以下のものをoutlierで埋める
-        q_train = train_df['OOF_PRED'].quantile(.0005)
+        q_train = train_df['OOF_PRED'].quantile(.0007)
         train_df.loc[:,'OOF_PRED'] = train_df['OOF_PRED'].apply(lambda x: x if x > q_train else -33.21928095)
         train_df[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
 

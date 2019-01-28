@@ -1,6 +1,7 @@
 
 import gc
 import lightgbm as lgb
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -13,7 +14,7 @@ from contextlib import contextmanager
 from sklearn.model_selection import KFold, StratifiedKFold
 from pandas.core.common import SettingWithCopyWarning
 
-from preprocessing_004 import train_test, historical_transactions, merchants, new_merchant_transactions, additional_features
+from preprocessing_002 import train_test, historical_transactions, merchants, new_merchant_transactions, additional_features
 from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, loadpkl, save2pkl, rmse, submit
 
 ################################################################################
@@ -50,14 +51,14 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
     print("Starting LightGBM. Train shape: {}, test shape: {}".format(train_df.shape, test_df.shape))
 
     # save pkl
-    save2pkl('../output/train_df.pkl', train_df)
-    save2pkl('../output/test_df.pkl', test_df)
+    save2pkl('../output/train_df_002.pkl', train_df)
+    save2pkl('../output/test_df_002.pkl', test_df)
 
     # Cross validation model
     if stratified:
-        folds = StratifiedKFold(n_splits= num_folds, shuffle=True, random_state=4950)
+        folds = StratifiedKFold(n_splits= num_folds, shuffle=True, random_state=326)
     else:
-        folds = KFold(n_splits= num_folds, shuffle=True, random_state=4950)
+        folds = KFold(n_splits= num_folds, shuffle=True, random_state=326)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
@@ -129,7 +130,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
         del reg, train_x, train_y, valid_x, valid_y
         gc.collect()
 
-    # Full RMSEスコアの表示 & LINE通知
+    # Full RMSEスコアの表示&LINE通知
     full_rmse = rmse(train_df['target'], oof_preds)
     line_notify('Full RMSE score %.6f' % full_rmse)
 
@@ -144,8 +145,8 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
         test_df = test_df.reset_index()
 
         # targetが一定値以下のものをoutlierで埋める
-        q_test = test_df['target'].quantile(.0001)
-        test_df.loc[:,'target']=test_df['target'].apply(lambda x: x if x > q_test else -33.21928095)
+        q = test_df['target'].quantile(.00085)
+        test_df.loc[:,'target']=test_df['target'].apply(lambda x: x if x > q else -33.21928095)
         test_df[['card_id', 'target']].to_csv(submission_file_name, index=False)
 
         # out of foldの予測値を保存
@@ -153,7 +154,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
         train_df = train_df.reset_index()
 
         # targetが一定値以下のものをoutlierで埋める
-        q_train = train_df['OOF_PRED'].quantile(.0001)
+        q_train = train_df['OOF_PRED'].quantile(.00085)
         train_df.loc[:,'OOF_PRED'] = train_df['OOF_PRED'].apply(lambda x: x if x > q_train else -33.21928095)
         train_df[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
 
@@ -162,14 +163,14 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
         line_notify('Adjusted Full RMSE score %.6f' % full_rmse_adj)
 
         # API経由でsubmit
-#        submit(submission_file_name, comment='model107 cv: %.6f' % full_rmse)
+        submit(submission_file_name, comment='model107 cv: %.6f' % full_rmse_adj)
 
 
 def main(debug=False, use_pkl=False):
     num_rows = 10000 if debug else None
     if use_pkl:
-        train_df = loadpkl('../output/train_df.pkl')
-        test_df = loadpkl('../output/test_df.pkl')
+        train_df = loadpkl('../output/train_df_002.pkl')
+        test_df = loadpkl('../output/test_df_002.pkl')
     else:
         with timer("train & test"):
             df = train_test(num_rows)
@@ -181,7 +182,7 @@ def main(debug=False, use_pkl=False):
             df = additional_features(df)
         with timer("save pkl"):
             print("df shape:", df.shape)
-            save2pkl('../output/df.pkl', df)
+            save2pkl('../output/df_002.pkl', df)
         with timer("split train & test"):
             train_df = df[df['target'].notnull()]
             test_df = df[df['target'].isnull()]
@@ -194,4 +195,4 @@ if __name__ == "__main__":
     submission_file_name = "../output/submission_lgbm.csv"
     oof_file_name = "../output/oof_lgbm.csv"
     with timer("Full model run"):
-        main(debug=False,use_pkl=False)
+        main(debug=False,use_pkl=True)

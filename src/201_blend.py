@@ -15,8 +15,8 @@ def getBestThreshold(act, pred):
     print('oof rmse: {:.10f}'.format(rmse_bst))
     for _q in np.arange(0, 0.005, 0.00001):
         _threshold = pred.quantile(_q)
-        _pred = pred.apply(lambda x: x if x > _threshold else -33.21928095)
-#        _pred = pred.apply(lambda x: x if x > _threshold else -15)
+#        _pred = pred.apply(lambda x: x if x > _threshold else -33.21928095)
+        _pred = pred.apply(lambda x: x if x > _threshold else -15)
         _rmse = rmse(act, _pred)
         if _rmse < rmse_bst:
             rmse_bst = _rmse
@@ -54,7 +54,7 @@ def main():
 
     # get best threshold
 #    q = getBestThreshold(train_df['target'], oof_preds)
-    th = sub['target'].quantile(.0008)
+    th = sub['target'].quantile(.0006)
     sub.loc[:,'target']=sub['target'].apply(lambda x: x if x > th else -33.21928095)
     oof_preds=oof_preds.apply(lambda x: x if x > th else -33.21928095)
 

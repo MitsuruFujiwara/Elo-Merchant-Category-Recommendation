@@ -9,6 +9,24 @@ from utils import line_notify, loadpkl, rmse, submit
 # Blend & Submit
 ################################################################################
 
+# for best threshold
+def getBestThreshold(act, pred):
+    rmse_bst = rmse(act, pred)
+    print('oof rmse: {:.10f}'.format(rmse_bst))
+    for _q in np.arange(0, 0.005, 0.00001):
+        _threshold = pred.quantile(_q)
+        _pred = pred.apply(lambda x: x if x > _threshold else -33.21928095)
+#        _pred = pred.apply(lambda x: x if x > _threshold else -15)
+        _rmse = rmse(act, _pred)
+        if _rmse < rmse_bst:
+            rmse_bst = _rmse
+            q = _q
+        print("q: {:.4f}, rmse: {:.10f}".format(_q, _rmse))
+
+    print("best q: {:.4f}, best rmse: {:.10f}".format(q, rmse_bst))
+
+    return q
+
 def main():
     # submitファイルをロード
     sub = pd.read_csv("../input/sample_submission.csv")
@@ -33,6 +51,11 @@ def main():
 
     # train_dfをロード
     train_df = loadpkl('../output/train_df.pkl')
+
+    # get best threshold
+#    q = getBestThreshold(train_df['target'], oof_preds)
+    th = sub['target'].quantile(.0005)
+    sub.loc[:,'target']=sub['target'].apply(lambda x: x if x > th else -33.21928095)
 
     # local cv scoreを算出
     local_rmse = rmse(train_df['target'], oof_preds)

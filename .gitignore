@@ -3,3 +3,4 @@
 /src/.ipynb_checkpoints/
 .DS_Store
 /src/__pycache__/
+/features/*.feather

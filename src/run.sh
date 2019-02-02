@@ -1,4 +1,5 @@
 #!/bin/sh
+python 002_features.py
 python 101_train_lgbm.py
 #python 106_train_xgb.py
 #python 107_train_lgbm.py

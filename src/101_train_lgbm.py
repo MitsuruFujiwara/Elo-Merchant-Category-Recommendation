@@ -13,8 +13,7 @@ from contextlib import contextmanager
 from sklearn.model_selection import KFold, StratifiedKFold
 from pandas.core.common import SettingWithCopyWarning
 
-from preprocessing_001 import train_test, historical_transactions, merchants, new_merchant_transactions, additional_features
-from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, loadpkl, save2pkl, rmse, submit
+from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, rmse, submit, load_datasets
 
 ################################################################################
 # Preprocessingで作成したファイルを読み込み、モデルを学習するモジュール。
@@ -48,10 +47,6 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
 # LightGBM GBDT with KFold or Stratified KFold
 def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= False):
     print("Starting LightGBM. Train shape: {}, test shape: {}".format(train_df.shape, test_df.shape))
-
-    # save pkl
-    save2pkl('../output/train_df.pkl', train_df)
-    save2pkl('../output/test_df.pkl', test_df)
 
     # Cross validation model
     if stratified:
@@ -165,27 +160,17 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
 #        submit(submission_file_name, comment='model101 cv: %.6f' % full_rmse)
 
 def main(debug=False, use_pkl=False):
-    num_rows = 10000 if debug else None
-    if use_pkl:
-        train_df = loadpkl('../output/train_df.pkl')
-        test_df = loadpkl('../output/test_df.pkl')
-    else:
-        with timer("train & test"):
-            df = train_test(num_rows)
-        with timer("historical transactions"):
-            df = pd.merge(df, historical_transactions(num_rows), on='card_id', how='outer')
-        with timer("new merchants"):
-            df = pd.merge(df, new_merchant_transactions(num_rows), on='card_id', how='outer')
-        with timer("additional features"):
-            df = additional_features(df)
-        with timer("save pkl"):
-            print("df shape:", df.shape)
-            save2pkl('../output/df.pkl', df)
-        with timer("split train & test"):
-            train_df = df[df['target'].notnull()]
-            test_df = df[df['target'].isnull()]
-            del df
-            gc.collect()
+    with timer("Load Datasets"):
+        # train & test
+        df = load_datasets('../features', debug)
+
+
+
+        # split train & test
+        train_df = df[df['target'].notnull()]
+        test_df = df[df['target'].isnull()]
+        del df
+        gc.collect()
     with timer("Run LightGBM with kfold"):
         kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, stratified=False, debug=debug)
 

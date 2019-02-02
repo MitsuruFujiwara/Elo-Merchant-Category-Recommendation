@@ -1,4 +1,5 @@
 
+import feather
 import os
 import pandas as pd
 import numpy as np
@@ -19,6 +20,16 @@ FEATS_EXCLUDED = ['first_active_month', 'target', 'card_id', 'outliers',
                   'Outlier_Likelyhood', 'OOF_PRED', 'outliers_pred', 'month_0']
 
 COMPETITION_NAME = 'elo-merchant-category-recommendation'
+
+# feather形式のload用
+def load_datasets(feature_path, is_debug=False):
+    # dfs = [pd.read_feather(f'features/{f}_train.feather') for f in feats]
+    feats = list(reversed(sorted([f for f in os.listdir(feature_path) if f[-8:] == '.feather'])))
+    dfs = [feather.read_dataframe(feature_path+'/'+f) for f in feats]
+    df = pd.concat(dfs, axis=1)
+    if is_debug:
+        df = df.iloc[0:10000,:]
+    return df
 
 # rmse
 def rmse(y_true, y_pred):

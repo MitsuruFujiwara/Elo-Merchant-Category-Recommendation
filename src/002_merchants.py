@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 import warnings
 
-from utils import one_hot_encoder
+from utils import one_hot_encoder, save2pkl
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -93,10 +93,8 @@ def main():
     merchants_df.columns = pd.Index([e[0] + "_" + e[1] for e in merchants_df.columns.tolist()])
     merchants_df.columns = ['mer_'+ c for c in merchants_df.columns]
 
-    merchants_df.reset_index(inplace=True)
-
     # save
-    merchants_df.to_feather('../features/merchants.feather')
+    save2pkl('../features/merchants.pkl', merchants_df)
 
 if __name__ == '__main__':
     main()

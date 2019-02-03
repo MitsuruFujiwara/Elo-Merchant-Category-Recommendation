@@ -21,15 +21,15 @@ FEATS_EXCLUDED = ['first_active_month', 'target', 'card_id', 'outliers',
 
 COMPETITION_NAME = 'elo-merchant-category-recommendation'
 
-# feather形式のload用
-def load_datasets(feature_path, is_debug=False):
-    # dfs = [pd.read_feather(f'features/{f}_train.feather') for f in feats]
-    feats = list(reversed(sorted([f for f in os.listdir(feature_path) if f[-8:] == '.feather'])))
-    dfs = [feather.read_dataframe(feature_path+'/'+f) for f in feats]
-    df = pd.concat(dfs, axis=1)
-    if is_debug:
-        df = df.iloc[0:10000,:]
-    return df
+# to feather
+def to_feature(df, path):
+    if df.columns.duplicated().sum()>0:
+        raise Exception('duplicated!: {}'.format(df.columns[df.columns.duplicated()]))
+    df.reset_index(inplace=True)
+    df.columns = [c.replace('/', '-').replace(' ', '-') for c in df.columns]
+    for c in df.columns:
+        df[[c]].to_feather('{}/{}.feather'.format(path,c))
+    return
 
 # rmse
 def rmse(y_true, y_pred):

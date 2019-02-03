@@ -1,5 +1,6 @@
 
 import gc
+import json
 import lightgbm as lgb
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,10 +11,12 @@ import time
 import warnings
 
 from contextlib import contextmanager
-from sklearn.model_selection import KFold, StratifiedKFold
+from glob import glob
 from pandas.core.common import SettingWithCopyWarning
+from sklearn.model_selection import KFold, StratifiedKFold
+from tqdm import tqdm
 
-from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, rmse, submit, load_datasets
+from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, rmse, submit
 
 ################################################################################
 # Preprocessingで作成したファイルを読み込み、モデルを学習するモジュール。
@@ -75,8 +78,8 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
 
         # パラメータは適当です
         params ={
-#                'device' : 'gpu',
-#                'gpu_use_dp':True,
+                'device' : 'gpu',
+                'gpu_use_dp':False,
                 'task': 'train',
                 'boosting': 'goss',
                 'objective': 'regression',
@@ -157,14 +160,19 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
 #        line_notify('Adjusted Full RMSE score %.6f' % full_rmse_adj)
 
         # API経由でsubmit
-#        submit(submission_file_name, comment='model101 cv: %.6f' % full_rmse)
+        submit(submission_file_name, comment='model101 cv: %.6f' % full_rmse)
 
 def main(debug=False, use_pkl=False):
     with timer("Load Datasets"):
-        # train & test
-        df = load_datasets('../features', debug)
+        # load feathers
+        files = sorted(glob('../features/*.feather'))
+        df = pd.concat([pd.read_feather(f) for f in tqdm(files, mininterval=60)], axis=1)
 
+        # set card_id as index
+        df.set_index('card_id', inplace=True)
 
+        # use selected features
+        df = df[configs['features']]
 
         # split train & test
         train_df = df[df['target'].notnull()]
@@ -177,5 +185,6 @@ def main(debug=False, use_pkl=False):
 if __name__ == "__main__":
     submission_file_name = "../output/submission_lgbm.csv"
     oof_file_name = "../output/oof_lgbm.csv"
+    configs = json.load(open('../configs/001_lgbm.json'))
     with timer("Full model run"):
         main(debug=False,use_pkl=True)

@@ -6,14 +6,14 @@ import pandas as pd
 import numpy as np
 import warnings
 
-from utils import one_hot_encoder
+from utils import one_hot_encoder, save2pkl
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def main():
     # load csv
-    train_df = pd.read_csv('../input/train.csv', index_col=['card_id'], nrows=num_rows)
-    test_df = pd.read_csv('../input/test.csv', index_col=['card_id'], nrows=num_rows)
+    train_df = pd.read_csv('../input/train.csv', index_col=['card_id'])
+    test_df = pd.read_csv('../input/test.csv', index_col=['card_id'])
 
     print("Train samples: {}, test samples: {}".format(len(train_df), len(test_df)))
 
@@ -63,11 +63,8 @@ def main():
     df['feature_min'] = df[['feature_1', 'feature_2', 'feature_3']].min(axis=1)
     df['feature_var'] = df[['feature_1', 'feature_2', 'feature_3']].std(axis=1)
 
-    # reset index
-    df.reset_index(inplace=True)
-
     # save
-    df.to_feather('../features/train_test.feather')
+    save2pkl('../features/train_test.pkl', df)
 
 if __name__ == '__main__':
     main()

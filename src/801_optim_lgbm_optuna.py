@@ -1,12 +1,12 @@
 
+import gc
+import json
 import lightgbm
 import numpy as np
-import pandas as pd
 import optuna
-import gc
+import pandas as pd
 
 from sklearn.model_selection import KFold, StratifiedKFold
-
 from utils import FEATS_EXCLUDED, NUM_FOLDS, loadpkl, line_notify
 
 ################################################################################
@@ -15,6 +15,8 @@ from utils import FEATS_EXCLUDED, NUM_FOLDS, loadpkl, line_notify
 ################################################################################
 
 # load datasets
+CONFIGS = json.load(open('../configs/001_lgbm.json'))
+
 TRAIN_DF = loadpkl('../output/train_df.pkl')
 FEATS = [f for f in TRAIN_DF.columns if f not in FEATS_EXCLUDED]
 

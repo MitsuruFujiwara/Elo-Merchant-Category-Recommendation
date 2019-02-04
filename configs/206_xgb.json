@@ -1,11 +1,11 @@
 {
     "features": [
+        "target",
         "feature_1",
         "feature_2",
         "feature_3",
         "first_active_month",
         "outliers",
-        "target",
         "quarter",
         "elapsed_time",
         "days_feature1",

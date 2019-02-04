@@ -6,7 +6,10 @@ import numpy as np
 import optuna
 import pandas as pd
 
+from glob import glob
 from sklearn.model_selection import KFold, StratifiedKFold
+from tqdm import tqdm
+
 from utils import FEATS_EXCLUDED, NUM_FOLDS, loadpkl, line_notify
 
 ################################################################################
@@ -15,9 +18,25 @@ from utils import FEATS_EXCLUDED, NUM_FOLDS, loadpkl, line_notify
 ################################################################################
 
 # load datasets
-CONFIGS = json.load(open('../configs/001_lgbm.json'))
+CONFIGS = json.load(open('../configs/201_lgbm.json'))
 
-TRAIN_DF = loadpkl('../output/train_df.pkl')
+# load feathers
+FILES = sorted(glob('../features/*.feather'))
+DF = pd.concat([pd.read_feather(f) for f in tqdm(FILES, mininterval=60)], axis=1)
+
+# set card_id as index
+DF.set_index('card_id', inplace=True)
+
+# use selected features
+DF = DF[CONFIGS['features']]
+
+# split train & test
+TRAIN_DF = DF[DF['target'].notnull()]
+TEST_DF = DF[DF['target'].isnull()]
+
+del DF, TEST_DF
+gc.collect()
+
 FEATS = [f for f in TRAIN_DF.columns if f not in FEATS_EXCLUDED]
 
 def objective(trial):

@@ -5,14 +5,15 @@ import pandas as pd
 import numpy as np
 import warnings
 
-from utils import one_hot_encoder, save2pkl
+from utils import one_hot_encoder, save2pkl, loadpkl
 from workalendar.america import Brazil
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-def main():
-    # load csv
-    new_merchant_df = pd.read_csv('../input/new_merchant_transactions.csv')
+def main(num_rows=None):
+    # load csv & pkl
+    new_merchant_df = pd.read_csv('../input/new_merchant_transactions.csv',nrows=num_rows)
+    merchants_df = loadpkl('../features/merchants.pkl')
 
     # fillna
     new_merchant_df['category_2'].fillna(1.0,inplace=True)
@@ -71,6 +72,12 @@ def main():
     new_merchant_df['duration'] = new_merchant_df['purchase_amount']*new_merchant_df['month_diff']
     new_merchant_df['amount_month_ratio'] = new_merchant_df['purchase_amount']/new_merchant_df['month_diff']
 
+    # merge merchants_df
+    new_merchant_df = pd.merge(new_merchant_df, merchants_df, on='merchant_id', how='outer')
+    merchants_cols = merchants_df.columns.tolist()
+    del merchants_df
+    gc.collect()
+
     col_unique =['subsector_id', 'merchant_id', 'merchant_category_id']
     col_seas = ['month', 'hour', 'weekofyear', 'weekday', 'day']
 
@@ -81,6 +88,9 @@ def main():
     for col in col_seas:
         aggs[col] = ['nunique', 'mean', 'min', 'max']
 
+    for col in merchants_cols:
+        aggs[col] = ['sum', 'mean']
+
     aggs['purchase_amount'] = ['sum','max','min','mean','var','skew']
     aggs['purchase_amount_outlier'] = ['sum','mean']
     aggs['installments'] = ['sum','max','min','mean','var','skew']
@@ -88,7 +98,7 @@ def main():
     aggs['month_lag'] = ['sum','max','min','mean','var','skew']
     aggs['month_diff'] = ['sum','max','min','mean','var','skew']
     aggs['weekend'] = ['sum','mean']
-    aggs['category_1'] = ['sum','mean']
+    aggs['category_1'] = ['sum','mean','min']
     aggs['category_2'] = ['sum','mean']
     aggs['category_3'] = ['sum','mean']
     aggs['card_id'] = ['size','count']

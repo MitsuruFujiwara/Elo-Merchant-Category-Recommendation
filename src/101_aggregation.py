@@ -31,14 +31,14 @@ def additional_features(df):
     df['purchase_amount_ratio'] = df['new_purchase_amount_sum']/df['hist_purchase_amount_sum']
     df['month_diff_mean'] = df['new_month_diff_mean']+df['hist_month_diff_mean']
     df['month_diff_max'] = df['new_month_diff_max']+df['hist_month_diff_max']
-#    df['month_diff_min'] = df['new_month_diff_min']+df['hist_month_diff_min']
+    df['month_diff_min'] = df['new_month_diff_min']+df['hist_month_diff_min']
     df['month_lag_mean'] = df['new_month_lag_mean']+df['hist_month_lag_mean']
-#    df['month_lag_max'] = df['new_month_lag_max']+df['hist_month_lag_max']
-#    df['month_lag_min'] = df['new_month_lag_min']+df['hist_month_lag_min']
+    df['month_lag_max'] = df['new_month_lag_max']+df['hist_month_lag_max']
+    df['month_lag_min'] = df['new_month_lag_min']+df['hist_month_lag_min']
     df['category_1_mean'] = df['new_category_1_mean']+df['hist_category_1_mean']
     df['category_2_mean'] = df['new_category_2_mean']+df['hist_category_2_mean']
     df['category_3_mean'] = df['new_category_3_mean']+df['hist_category_3_mean']
-#    df['category_1_min'] = df['new_category_1_min']+df['hist_category_1_min']
+    df['category_1_min'] = df['new_category_1_min']+df['hist_category_1_min']
     df['installments_total'] = df['new_installments_sum']+df['hist_installments_sum']
     df['installments_mean'] = df['new_installments_mean']+df['hist_installments_mean']
     df['installments_max'] = df['new_installments_max']+df['hist_installments_max']
@@ -55,6 +55,9 @@ def additional_features(df):
     df['new_CLV'] = df['new_card_id_count'] * df['new_purchase_amount_sum'] / df['new_month_diff_mean']
     df['hist_CLV'] = df['hist_card_id_count'] * df['hist_purchase_amount_sum'] / df['hist_month_diff_mean']
     df['CLV_ratio'] = df['new_CLV'] / df['hist_CLV']
+    df['Mothers_Day_2018'] = df['new_Mothers_Day_2018_mean']+ df['hist_Mothers_Day_2018_mean']
+    df['duration_purchase_date_ratio'] = df['hist_duration_unapproved_min'] / df['new_purchase_date_uptomin']
+    df['unapproved_duration_month_diff_ratio'] = df['hist_duration_unapproved_min'] / df['hist_month_diff_unapproved_max']
 
     return df
 

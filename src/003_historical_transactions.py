@@ -5,14 +5,15 @@ import pandas as pd
 import numpy as np
 import warnings
 
-from utils import one_hot_encoder, save2pkl
+from utils import one_hot_encoder, save2pkl, loadpkl
 from workalendar.america import Brazil
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-def main():
-    # load csv
-    hist_df = pd.read_csv('../input/historical_transactions.csv')
+def main(num_rows=None):
+    # load csv & pkl
+    hist_df = pd.read_csv('../input/historical_transactions.csv',nrows=num_rows)
+    merchants_df = loadpkl('../features/merchants.pkl')
 
     # fillna
     hist_df['category_2'].fillna(1.0,inplace=True)
@@ -96,6 +97,12 @@ def main():
     hist_df['amount_month_ratio_approved'] = hist_df['amount_month_ratio']*hist_df['authorized_flag']
     hist_df['amount_month_ratio_unapproved'] = hist_df['amount_month_ratio']*(1-hist_df['authorized_flag'])
 
+    # merge merchants_df
+    hist_df = pd.merge(hist_df, merchants_df, on='merchant_id', how='outer')
+    merchants_cols = merchants_df.columns.tolist()
+    del merchants_df
+    gc.collect()
+
     col_unique =['subsector_id', 'merchant_id', 'merchant_category_id']
     col_seas = ['month', 'hour', 'weekofyear', 'weekday', 'day']
 
@@ -106,22 +113,25 @@ def main():
     for col in col_seas:
         aggs[col] = ['nunique', 'mean', 'min', 'max']
 
+    for col in merchants_cols:
+        aggs[col] = ['sum', 'mean']
+
     aggs['purchase_amount'] = ['sum','max','min','mean','var','skew']
     aggs['purchase_amount_approved'] = ['sum','max','min','mean','var','skew']
-    aggs['purchase_amount_unapproved'] = ['sum','min','mean','var','skew']
-    aggs['purchase_amount_outlier'] = ['mean']
-    aggs['installments'] = ['sum','max','mean','var','skew']
-    aggs['installments_approved'] = ['sum','max','mean','var','skew']
-    aggs['installments_unapproved'] = ['sum','max','mean','var','skew']
+    aggs['purchase_amount_unapproved'] = ['sum','max','min','mean','var','skew']
+    aggs['purchase_amount_outlier'] = ['sum','mean']
+    aggs['installments'] = ['sum','max','min','mean','var','skew']
+    aggs['installments_approved'] = ['sum','max','min','mean','var','skew']
+    aggs['installments_unapproved'] = ['sum','max','min','mean','var','skew']
     aggs['purchase_date'] = ['max','min']
-    aggs['month_lag'] = ['max','min','mean','var','skew']
-    aggs['month_lag_approved'] = ['min','mean','var','skew']
-    aggs['month_lag_unapproved'] = ['min','mean','var','skew']
-    aggs['month_diff'] = ['max','mean','var','skew']
-    aggs['month_diff_approved'] = ['max','mean','var','skew']
-    aggs['month_diff_unapproved'] = ['max','mean','var','skew']
+    aggs['month_lag'] = ['sum','max','min','mean','var','skew']
+    aggs['month_lag_approved'] = ['sum','max','min','mean','var','skew']
+    aggs['month_lag_unapproved'] = ['sum','max','min','mean','var','skew']
+    aggs['month_diff'] = ['sum','max','min','mean','var','skew']
+    aggs['month_diff_approved'] = ['sum','max','min','mean','var','skew']
+    aggs['month_diff_unapproved'] = ['sum','max','min','mean','var','skew']
     aggs['authorized_flag'] = ['mean', 'sum']
-    aggs['category_1'] = ['mean']
+    aggs['category_1'] = ['mean','min']
     aggs['category_1_approved'] = ['mean']
     aggs['category_1_unapproved'] = ['mean']
     aggs['category_2'] = ['mean']
@@ -132,7 +142,7 @@ def main():
     aggs['category_3_unapproved'] = ['mean']
     aggs['card_id'] = ['size','count']
     aggs['is_holiday'] = ['mean']
-    aggs['price'] = ['sum','mean','max','min','var']
+    aggs['price'] = ['sum','max','min','mean','var','skew']
     aggs['purchase_amount_outlier']=['mean']
     aggs['Christmas_Day_2017'] = ['mean']
     aggs['Mothers_Day_2017'] = ['mean']
@@ -141,12 +151,12 @@ def main():
     aggs['Valentine_Day_2017'] = ['mean']
     aggs['Black_Friday_2017'] = ['mean']
     aggs['Mothers_Day_2018'] = ['mean']
-    aggs['duration']=['mean','min','max','var','skew']
-    aggs['duration_approved']=['mean','min','max','var','skew']
-    aggs['duration_unapproved']=['mean','min','max','var','skew']
-    aggs['amount_month_ratio']=['mean','min','max','var','skew']
-    aggs['amount_month_ratio_approved']=['mean','min','max','var','skew']
-    aggs['amount_month_ratio_unapproved']=['mean','min','max','var','skew']
+    aggs['duration']=['sum','max','min','mean','var','skew']
+    aggs['duration_approved']=['sum','max','min','mean','var','skew']
+    aggs['duration_unapproved']=['sum','max','min','mean','var','skew']
+    aggs['amount_month_ratio']=['sum','max','min','mean','var','skew']
+    aggs['amount_month_ratio_approved']=['sum','max','min','mean','var','skew']
+    aggs['amount_month_ratio_unapproved']=['sum','max','min','mean','var','skew']
 
     for col in ['category_2','category_3']:
         hist_df[col+'_mean'] = hist_df.groupby([col])['purchase_amount'].transform('mean')

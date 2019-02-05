@@ -40,7 +40,7 @@ def main():
     df['weekofyear'] = df['first_active_month'].dt.weekofyear.fillna(0).astype(int).astype(object)
     df['quarter'] = df['first_active_month'].dt.quarter
     df['month_year'] = df['month'].astype(str)+'_'+df['year'].astype(str)
-    df['elapsed_time'] = (datetime.datetime.today() - df['first_active_month']).dt.days
+    df['elapsed_time'] = (pd.to_datetime('2018-03-01') - df['first_active_month']).dt.days
 
     df['days_feature1'] = df['elapsed_time'] * df['feature_1']
     df['days_feature2'] = df['elapsed_time'] * df['feature_2']

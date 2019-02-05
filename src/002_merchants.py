@@ -10,9 +10,9 @@ from utils import one_hot_encoder, save2pkl
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-def main():
+def main(num_rows=None):
     # load csv
-    merchants_df = pd.read_csv('../input/merchants.csv',index_col=['merchant_id'])
+    merchants_df = pd.read_csv('../input/merchants.csv',index_col=['merchant_id'],nrows=num_rows)
 
     # Y/Nのカラムを1-0へ変換
     merchants_df['category_1'] = merchants_df['category_1'].map({'Y': 1, 'N': 0}).astype(int)
@@ -46,46 +46,48 @@ def main():
     for col in col_unique:
         aggs[col] = ['nunique']
 
-    aggs['numerical_1'] = ['mean','max','min','std','var']
-    aggs['numerical_2'] = ['mean','max','min','std','var']
-    aggs['avg_sales_lag3'] = ['mean','max','min','std','var']
-    aggs['avg_sales_lag6'] = ['mean','max','min','std','var']
-    aggs['avg_sales_lag12'] = ['mean','max','min','std','var']
-    aggs['avg_purchases_lag3'] = ['mean','max','min','std','var']
-    aggs['avg_purchases_lag6'] = ['mean','max','min','std','var']
-    aggs['avg_purchases_lag12'] = ['mean','max','min','std','var']
-    aggs['active_months_lag3'] = ['mean','max','min','std','var']
-    aggs['active_months_lag6'] = ['mean','max','min','std','var']
-    aggs['active_months_lag12'] = ['mean','max','min','std','var']
-    aggs['category_1'] = ['mean']
-    aggs['category_4'] = ['mean']
-    aggs['most_recent_sales_range_A'] = ['mean']
-    aggs['most_recent_sales_range_B'] = ['mean']
-    aggs['most_recent_sales_range_C'] = ['mean']
-    aggs['most_recent_sales_range_D'] = ['mean']
-    aggs['most_recent_sales_range_E'] = ['mean']
-    aggs['most_recent_purchases_range_A'] = ['mean']
-    aggs['most_recent_purchases_range_B'] = ['mean']
-    aggs['most_recent_purchases_range_C'] = ['mean']
-    aggs['most_recent_purchases_range_D'] = ['mean']
-    aggs['most_recent_purchases_range_E'] = ['mean']
-    aggs['category_2_-1'] = ['mean']
-    aggs['category_2_1'] = ['mean']
-    aggs['category_2_2'] = ['mean']
-    aggs['category_2_3'] = ['mean']
-    aggs['category_2_4'] = ['mean']
-    aggs['category_2_5'] = ['mean']
-    aggs['avg_numerical'] = ['mean','max','min','std','var']
-    aggs['avg_sales'] = ['mean','max','min','std','var']
-    aggs['avg_purchases'] = ['mean','max','min','std','var']
-    aggs['avg_active_months'] = ['mean','max','min','std','var']
-    aggs['max_sales'] = ['mean','max','min','std','var']
-    aggs['max_purchases'] = ['mean','max','min','std','var']
-    aggs['max_active_months'] = ['mean','max','min','std','var']
-    aggs['min_sales'] = ['mean','max','min','std','var']
-    aggs['min_purchases'] = ['mean','max','min','std','var']
-    aggs['min_active_months'] = ['mean','max','min','std','var']
-    aggs['sum_category'] = ['mean']
+    aggs['numerical_1'] = ['sum','max','min','mean','var','skew']
+    aggs['numerical_2'] = ['sum','max','min','mean','var','skew']
+    aggs['avg_sales_lag3'] = ['sum','max','min','mean','var','skew']
+    aggs['avg_sales_lag6'] = ['sum','max','min','mean','var','skew']
+    aggs['avg_sales_lag12'] = ['sum','max','min','mean','var','skew']
+    aggs['avg_purchases_lag3'] = ['sum','max','min','mean','var','skew']
+    aggs['avg_purchases_lag6'] = ['sum','max','min','mean','var','skew']
+    aggs['avg_purchases_lag12'] = ['sum','max','min','mean','var','skew']
+    aggs['active_months_lag3'] = ['sum','max','min','mean','var','skew']
+    aggs['active_months_lag6'] = ['sum','max','min','mean','var','skew']
+    aggs['active_months_lag12'] = ['sum','max','min','mean','var','skew']
+    aggs['category_1'] = ['sum','mean']
+    aggs['category_4'] = ['sum','mean']
+    """
+    aggs['most_recent_sales_range_A'] = ['sum','mean']
+    aggs['most_recent_sales_range_B'] = ['sum','mean']
+    aggs['most_recent_sales_range_C'] = ['sum','mean']
+    aggs['most_recent_sales_range_D'] = ['sum','mean']
+    aggs['most_recent_sales_range_E'] = ['sum','mean']
+    aggs['most_recent_purchases_range_A'] = ['sum','mean']
+    aggs['most_recent_purchases_range_B'] = ['sum','mean']
+    aggs['most_recent_purchases_range_C'] = ['sum','mean']
+    aggs['most_recent_purchases_range_D'] = ['sum','mean']
+    aggs['most_recent_purchases_range_E'] = ['sum','mean']
+    """
+    aggs['category_2_-1'] = ['sum','mean']
+    aggs['category_2_1'] = ['sum','mean']
+    aggs['category_2_2'] = ['sum','mean']
+    aggs['category_2_3'] = ['sum','mean']
+    aggs['category_2_4'] = ['sum','mean']
+    aggs['category_2_5'] = ['sum','mean']
+    aggs['avg_numerical'] = ['sum','max','min','mean','var','skew']
+    aggs['avg_sales'] = ['sum','max','min','mean','var','skew']
+    aggs['avg_purchases'] = ['sum','max','min','mean','var','skew']
+    aggs['avg_active_months'] = ['sum','max','min','mean','var','skew']
+    aggs['max_sales'] = ['sum','max','min','mean','var','skew']
+    aggs['max_purchases'] = ['sum','max','min','mean','var','skew']
+    aggs['max_active_months'] = ['sum','max','min','mean','var','skew']
+    aggs['min_sales'] = ['sum','max','min','mean','var','skew']
+    aggs['min_purchases'] = ['sum','max','min','mean','var','skew']
+    aggs['min_active_months'] = ['sum','max','min','mean','var','skew']
+    aggs['sum_category'] = ['sum','mean']
 
     merchants_df = merchants_df.reset_index().groupby('merchant_id').agg(aggs)
 

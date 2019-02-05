@@ -1,20 +1,21 @@
 
 import catboost as cb
 import gc
+import json
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 import pandas as pd
 import seaborn as sns
 import time
 import warnings
 
 from contextlib import contextmanager
-from sklearn.model_selection import KFold, StratifiedKFold
+from glob import glob
 from pandas.core.common import SettingWithCopyWarning
+from sklearn.model_selection import KFold, StratifiedKFold
+from tqdm import tqdm
 
-from preprocessing_001 import train_test, historical_transactions, merchants, new_merchant_transactions, additional_features
-from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, loadpkl, save2pkl, rmse, submit
+from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, rmse, submit
 
 ################################################################################
 # Preprocessingで作成したファイルを読み込み、モデルを学習するモジュール。
@@ -49,10 +50,6 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
 def kfold_catboost(train_df, test_df, num_folds, stratified = False, debug= False):
     print("Starting CatBoost. Train shape: {}, test shape: {}".format(train_df.shape, test_df.shape))
 
-    # save pkl
-    save2pkl('../output/train_df.pkl', train_df)
-    save2pkl('../output/test_df.pkl', test_df)
-
     # Cross validation model
     if stratified:
         folds = StratifiedKFold(n_splits= num_folds, shuffle=True, random_state=4950)
@@ -82,14 +79,16 @@ def kfold_catboost(train_df, test_df, num_folds, stratified = False, debug= Fals
                 'eval_metric': 'RMSE',
                 'learning_rate': 0.01,
                 'early_stopping_rounds':200,
+                'verbose_eval':100,
+                'train_dir':'../output/catboost_info',
                 'random_seed': int(2**n_fold)
                 }
 
         reg = cb.train(
-                       params,
                        cb_train,
+                       params,
                        num_boost_round=10000,
-                       eval_set=[cb_train, cb_test]
+                       eval_set=cb_test
                        )
 
         # save model
@@ -122,8 +121,8 @@ def kfold_catboost(train_df, test_df, num_folds, stratified = False, debug= Fals
         test_df = test_df.reset_index()
 
         # targetが一定値以下のものをoutlierで埋める
-        q_test = test_df['target'].quantile(.0005)
-        test_df.loc[:,'target']=test_df['target'].apply(lambda x: x if x > q_test else -33.21928095)
+#        q_test = test_df['target'].quantile(.0005)
+#        test_df.loc[:,'target']=test_df['target'].apply(lambda x: x if x > q_test else -33.21928095)
         test_df[['card_id', 'target']].to_csv(submission_file_name, index=False)
 
         # out of foldの予測値を保存
@@ -131,44 +130,40 @@ def kfold_catboost(train_df, test_df, num_folds, stratified = False, debug= Fals
         train_df = train_df.reset_index()
 
         # targetが一定値以下のものをoutlierで埋める
-        q_train = train_df['OOF_PRED'].quantile(.0005)
-        train_df.loc[:,'OOF_PRED'] = train_df['OOF_PRED'].apply(lambda x: x if x > q_train else -33.21928095)
+#        q_train = train_df['OOF_PRED'].quantile(.0005)
+#        train_df.loc[:,'OOF_PRED'] = train_df['OOF_PRED'].apply(lambda x: x if x > q_train else -33.21928095)
         train_df[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
 
         # Adjusted Full RMSEスコアの表示 & LINE通知
-        full_rmse_adj = rmse(train_df['target'], train_df['OOF_PRED'])
-        line_notify('Adjusted Full RMSE score %.6f' % full_rmse_adj)
+#        full_rmse_adj = rmse(train_df['target'], train_df['OOF_PRED'])
+#        line_notify('Adjusted Full RMSE score %.6f' % full_rmse_adj)
 
         # API経由でsubmit
-        submit(submission_file_name, comment='model101 cv: %.6f' % full_rmse_adj)
+        submit(submission_file_name, comment='model208 cv: %.6f' % full_rmse)
 
-def main(debug=False, use_pkl=False):
-    num_rows = 10000 if debug else None
-    if use_pkl:
-        train_df = loadpkl('../output/train_df.pkl')
-        test_df = loadpkl('../output/test_df.pkl')
-    else:
-        with timer("train & test"):
-            df = train_test(num_rows)
-        with timer("historical transactions"):
-            df = pd.merge(df, historical_transactions(num_rows), on='card_id', how='outer')
-        with timer("new merchants"):
-            df = pd.merge(df, new_merchant_transactions(num_rows), on='card_id', how='outer')
-        with timer("additional features"):
-            df = additional_features(df)
-        with timer("save pkl"):
-            print("df shape:", df.shape)
-            save2pkl('../output/df.pkl', df)
-        with timer("split train & test"):
-            train_df = df[df['target'].notnull()]
-            test_df = df[df['target'].isnull()]
-            del df
-            gc.collect()
+def main(debug=False):
+    with timer("Load Datasets"):
+        # load feathers
+        files = sorted(glob('../features/*.feather'))
+        df = pd.concat([pd.read_feather(f) for f in tqdm(files, mininterval=60)], axis=1)
+
+        # set card_id as index
+        df.set_index('card_id', inplace=True)
+
+        # use selected features
+        df = df[configs['features']]
+
+        # split train & test
+        train_df = df[df['target'].notnull()]
+        test_df = df[df['target'].isnull()]
+        del df
+        gc.collect()
     with timer("Run CatBoost with kfold"):
         kfold_catboost(train_df, test_df, num_folds=NUM_FOLDS, stratified=False, debug=debug)
 
 if __name__ == "__main__":
     submission_file_name = "../output/submission_cb.csv"
     oof_file_name = "../output/oof_cb.csv"
+    configs = json.load(open('../configs/208_cb.json'))
     with timer("Full model run"):
-        main(debug=True,use_pkl=True)
+        main(debug=False)

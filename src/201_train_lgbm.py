@@ -161,7 +161,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
         # API経由でsubmit
         submit(submission_file_name, comment='model201 cv: %.6f' % full_rmse)
 
-def main(debug=False, use_pkl=False):
+def main(debug=False):
     with timer("Load Datasets"):
         # load feathers
         files = sorted(glob('../features/*.feather'))
@@ -186,4 +186,4 @@ if __name__ == "__main__":
     oof_file_name = "../output/oof_lgbm.csv"
     configs = json.load(open('../configs/201_lgbm.json'))
     with timer("Full model run"):
-        main(debug=False,use_pkl=True)
+        main(debug=False)

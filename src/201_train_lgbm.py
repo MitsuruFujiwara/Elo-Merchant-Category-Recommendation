@@ -4,6 +4,7 @@ import json
 import lightgbm as lgb
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import pandas as pd
 import seaborn as sns
 import time
@@ -159,7 +160,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
 #        line_notify('Adjusted Full RMSE score %.6f' % full_rmse_adj)
 
         # API経由でsubmit
-        submit(submission_file_name, comment='model201 cv: %.6f' % full_rmse)
+#        submit(submission_file_name, comment='model201 cv: %.6f' % full_rmse)
 
 def main(debug=False):
     with timer("Load Datasets"):

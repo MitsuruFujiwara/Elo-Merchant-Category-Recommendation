@@ -1,7 +1,7 @@
 
 import gc
+import json
 import lightgbm as lgb
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -11,12 +11,13 @@ import time
 import warnings
 
 from contextlib import contextmanager
+from glob import glob
+from pandas.core.common import SettingWithCopyWarning
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import KFold, StratifiedKFold
-from pandas.core.common import SettingWithCopyWarning
+from tqdm import tqdm
 
-from preprocessing_004 import train_test, historical_transactions, merchants, new_merchant_transactions, additional_features
-from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, loadpkl, save2pkl, rmse, submit
+from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, rmse, submit
 
 ################################################################################
 # Model For Outliers Classification
@@ -160,20 +161,17 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
         save2pkl('../output/test_df.pkl', test_df)
 
 def main(debug=False, use_pkl=False):
-    num_rows = 10000 if debug else None
-    if use_pkl:
-        df = loadpkl('../output/df.pkl')
-    else:
-        with timer("train & test"):
-            df = train_test(num_rows)
-        with timer("historical transactions"):
-            df = pd.merge(df, historical_transactions(num_rows), on='card_id', how='outer')
-        with timer("new merchants"):
-            df = pd.merge(df, new_merchant_transactions(num_rows), on='card_id', how='outer')
-        with timer("additional features"):
-            df = additional_features(df)
-        with timer("save pkl"):
-            save2pkl('../output/df.pkl', df)
+    with timer("Load Datasets"):
+        # load feathers
+        files = sorted(glob('../features/*.feather'))
+        df = pd.concat([pd.read_feather(f) for f in tqdm(files, mininterval=60)], axis=1)
+
+        # set card_id as index
+        df.set_index('card_id', inplace=True)
+
+        # use selected features
+        df = df[configs['features']]
+
     with timer("Run LightGBM with kfold"):
         print("df shape:", df.shape)
         kfold_lightgbm(df, num_folds=NUM_FOLDS, stratified=True, debug=debug)
@@ -181,5 +179,6 @@ def main(debug=False, use_pkl=False):
 if __name__ == "__main__":
     submission_file_name = "../output/submission_binary.csv"
     oof_file_name = "../output/oof_lgbm_binary.csv"
+    configs = json.load(open('../configs/201_lgbm.json'))
     with timer("Full model run"):
         main(debug=False,use_pkl=True)

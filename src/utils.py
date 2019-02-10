@@ -14,7 +14,7 @@ NUM_FOLDS = 11
 
 #feats_drop = pd.read_csv('feats_drop.csv')['feature'].tolist()
 
-FEATS_EXCLUDED = ['first_active_month', 'target', 'card_id', 'outliers',
+FEATS_EXCLUDED = ['first_active_month', 'target', 'card_id', 'outliers', 'index',
                   'Outlier_Likelyhood', 'OOF_PRED', 'outliers_pred']
 
 COMPETITION_NAME = 'elo-merchant-category-recommendation'
@@ -49,16 +49,19 @@ def targetEncoding(df, col, target):
 
 # correlationの高い変数を削除する機能
 def removeCorrelatedVariables(data, threshold):
+    print('Removing Correlated Variables...')
     corr_matrix = data.corr().abs()
     upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(np.bool))
-    col_drop = [column for column in upper.columns if any(upper[column] > threshold) & ('visitors' not in column)]
+    col_drop = [column for column in upper.columns if any(upper[column] > threshold) & ('target' not in column)]
     return col_drop
 
 # 欠損値の率が高い変数を削除する機能
 def removeMissingVariables(data, threshold):
+    print('Removing Missing Variables...')
     missing = (data.isnull().sum() / len(data)).sort_values(ascending = False)
-    col_missing = missing.index[missing > 0.75]
-    col_missing = [column for column in col_missing if 'visitors' not in column]
+    col_missing = missing.index[missing > threshold]
+    col_missing = [column for column in col_missing if 'target' not in column]
+    return col_missing
 
 # LINE通知用
 def line_notify(message):

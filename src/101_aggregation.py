@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 import warnings
 
-from utils import one_hot_encoder, loadpkl, to_feature
+from utils import one_hot_encoder, loadpkl, to_feature, removeCorrelatedVariables, removeMissingVariables
 
 # additional features
 def additional_features(df):
@@ -76,6 +76,22 @@ def main():
 
     # additional features
     df = additional_features(df)
+
+    # inf to nan
+    df = df.replace([np.inf, -np.inf], np.nan)
+
+    # remove missing variables
+    col_missing = removeMissingVariables(df,0.75)
+    df.drop(col_missing, axis=1, inplace=True)
+
+    # remove correlated variables
+    col_drop = removeCorrelatedVariables(df,0.9)
+    df.drop(col_drop, axis=1, inplace=True)
+
+    # change dtype
+    for col in df.columns.tolist():
+        if df[col].dtypes == 'float16':
+            df[col] = df[col].astype(np.float32)
 
     # save as feather
     to_feature(df, '../features')

@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import warnings
 
-from utils import one_hot_encoder, save2pkl, loadpkl
+from utils import one_hot_encoder, save2pkl, loadpkl, reduce_mem_usage
 from workalendar.america import Brazil
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -38,6 +38,7 @@ def main(num_rows=None):
     # purchase amount
     hist_df['purchase_amount_outlier'] = (hist_df['purchase_amount']>0.8).astype(int)
     hist_df['purchase_amount'] = hist_df['purchase_amount'].apply(lambda x: min(x, 0.8))
+    hist_df['purchase_amount'] = np.round(hist_df['purchase_amount'] / 0.00150265118 + 497.06,2)
     hist_df['purchase_amount_approved'] = hist_df['purchase_amount'] * hist_df['authorized_flag']
     hist_df['purchase_amount_unapproved'] = hist_df['purchase_amount'] * (1-hist_df['authorized_flag'])
 
@@ -96,6 +97,10 @@ def main(num_rows=None):
     hist_df['amount_month_ratio'] = hist_df['purchase_amount']/hist_df['month_diff']
     hist_df['amount_month_ratio_approved'] = hist_df['amount_month_ratio']*hist_df['authorized_flag']
     hist_df['amount_month_ratio_unapproved'] = hist_df['amount_month_ratio']*(1-hist_df['authorized_flag'])
+
+    # reduce memory usage
+    hist_df = reduce_mem_usage(hist_df)
+    merchants_df = reduce_mem_usage(merchants_df)
 
     # merge merchants_df
     hist_df = pd.merge(hist_df, merchants_df, on='merchant_id', how='outer')

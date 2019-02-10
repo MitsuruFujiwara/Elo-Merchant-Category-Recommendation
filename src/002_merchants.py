@@ -18,6 +18,10 @@ def main(num_rows=None):
     merchants_df['category_1'] = merchants_df['category_1'].map({'Y': 1, 'N': 0}).astype(int)
     merchants_df['category_4'] = merchants_df['category_4'].map({'Y': 1, 'N': 0}).astype(int)
 
+    # fix anonymized features
+    merchants_df['numerical_1'] = np.round(merchants_df['numerical_1'] / 0.009914905 + 5.79639, 0)
+    merchants_df['numerical_2'] = np.round(merchants_df['numerical_2'] / 0.009914905 + 5.79639, 0)
+
     # additional features
     merchants_df['avg_numerical'] = merchants_df[['numerical_1','numerical_2']].mean(axis=1)
     merchants_df['avg_sales'] = merchants_df[['avg_sales_lag3','avg_sales_lag6','avg_sales_lag12']].mean(axis=1)

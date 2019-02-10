@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import warnings
 
-from utils import one_hot_encoder, save2pkl, loadpkl
+from utils import one_hot_encoder, save2pkl, loadpkl, reduce_mem_usage
 from workalendar.america import Brazil
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -42,6 +42,7 @@ def main(num_rows=None):
 
     # purchase amount
     new_merchant_df['purchase_amount_outlier'] = (new_merchant_df['purchase_amount']>0.8).astype(int)
+    new_merchant_df['purchase_amount'] = np.round(new_merchant_df['purchase_amount'] / 0.00150265118 + 497.06,2)
     new_merchant_df['purchase_amount'] = new_merchant_df['purchase_amount'].apply(lambda x: min(x, 0.8))
 
     # additional features
@@ -71,6 +72,10 @@ def main(num_rows=None):
     # additional features
     new_merchant_df['duration'] = new_merchant_df['purchase_amount']*new_merchant_df['month_diff']
     new_merchant_df['amount_month_ratio'] = new_merchant_df['purchase_amount']/new_merchant_df['month_diff']
+
+    # reduce memory usage
+    new_merchant_df = reduce_mem_usage(new_merchant_df)
+    merchants_df = reduce_mem_usage(merchants_df)
 
     # merge merchants_df
     new_merchant_df = pd.merge(new_merchant_df, merchants_df, on='merchant_id', how='outer')

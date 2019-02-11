@@ -50,17 +50,21 @@ def main(num_rows=None):
     for col in col_unique:
         aggs[col] = ['nunique']
 
+    """
     aggs['numerical_1'] = ['sum','max','min','mean','var','skew']
     aggs['numerical_2'] = ['sum','max','min','mean','var','skew']
+    """
     aggs['avg_sales_lag3'] = ['sum','max','min','mean','var','skew']
     aggs['avg_sales_lag6'] = ['sum','max','min','mean','var','skew']
     aggs['avg_sales_lag12'] = ['sum','max','min','mean','var','skew']
+    """
     aggs['avg_purchases_lag3'] = ['sum','max','min','mean','var','skew']
     aggs['avg_purchases_lag6'] = ['sum','max','min','mean','var','skew']
     aggs['avg_purchases_lag12'] = ['sum','max','min','mean','var','skew']
     aggs['active_months_lag3'] = ['sum','max','min','mean','var','skew']
     aggs['active_months_lag6'] = ['sum','max','min','mean','var','skew']
     aggs['active_months_lag12'] = ['sum','max','min','mean','var','skew']
+    """
     aggs['category_1'] = ['sum','mean']
     aggs['category_4'] = ['sum','mean']
     """
@@ -81,6 +85,7 @@ def main(num_rows=None):
     aggs['category_2_3'] = ['sum','mean']
     aggs['category_2_4'] = ['sum','mean']
     aggs['category_2_5'] = ['sum','mean']
+    """
     aggs['avg_numerical'] = ['sum','max','min','mean','var','skew']
     aggs['avg_sales'] = ['sum','max','min','mean','var','skew']
     aggs['avg_purchases'] = ['sum','max','min','mean','var','skew']
@@ -92,7 +97,7 @@ def main(num_rows=None):
     aggs['min_purchases'] = ['sum','max','min','mean','var','skew']
     aggs['min_active_months'] = ['sum','max','min','mean','var','skew']
     aggs['sum_category'] = ['sum','mean']
-
+    """
     merchants_df = merchants_df.reset_index().groupby('merchant_id').agg(aggs)
 
     # カラム名の変更

@@ -178,8 +178,8 @@ def main(num_rows=None):
 
     hist_df['hist_purchase_date_diff'] = (hist_df['hist_purchase_date_max']-hist_df['hist_purchase_date_min']).dt.days
     hist_df['hist_purchase_date_average'] = hist_df['hist_purchase_date_diff']/hist_df['hist_card_id_size']
-    hist_df['hist_purchase_date_uptonow'] = (datetime.datetime.today()-hist_df['hist_purchase_date_max']).dt.days
-    hist_df['hist_purchase_date_uptomin'] = (datetime.datetime.today()-hist_df['hist_purchase_date_min']).dt.days
+    hist_df['hist_purchase_date_uptonow'] = (pd.to_datetime('2019-01-01')-hist_df['hist_purchase_date_max']).dt.days
+    hist_df['hist_purchase_date_uptomin'] = (pd.to_datetime('2019-01-01')-hist_df['hist_purchase_date_min']).dt.days
 
     # save
     save2pkl('../features/historical_transactions.pkl', hist_df)

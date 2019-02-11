@@ -134,8 +134,8 @@ def main(num_rows=None):
 
     new_merchant_df['new_purchase_date_diff'] = (new_merchant_df['new_purchase_date_max']-new_merchant_df['new_purchase_date_min']).dt.days
     new_merchant_df['new_purchase_date_average'] = new_merchant_df['new_purchase_date_diff']/new_merchant_df['new_card_id_size']
-    new_merchant_df['new_purchase_date_uptonow'] = (datetime.datetime.today()-new_merchant_df['new_purchase_date_max']).dt.days
-    new_merchant_df['new_purchase_date_uptomin'] = (datetime.datetime.today()-new_merchant_df['new_purchase_date_min']).dt.days
+    new_merchant_df['new_purchase_date_uptonow'] = (pd.to_datetime('2019-01-01')-new_merchant_df['new_purchase_date_max']).dt.days
+    new_merchant_df['new_purchase_date_uptomin'] = (pd.to_datetime('2019-01-01')-new_merchant_df['new_purchase_date_min']).dt.days
 
     # save
     save2pkl('../features/new_merchant_transactions.pkl', new_merchant_df)

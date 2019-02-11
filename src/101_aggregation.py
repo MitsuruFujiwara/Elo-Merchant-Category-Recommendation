@@ -15,6 +15,14 @@ def additional_features(df):
     df['new_first_buy'] = (df['new_purchase_date_min'] - df['first_active_month']).dt.days
     df['new_last_buy'] = (df['new_purchase_date_max'] - df['first_active_month']).dt.days
 
+    df['hist_time_recency'] = df['hist_purchase_date_diff'] + df['hist_purchase_date_uptonow']
+    df['new_time_recency'] = df['new_purchase_date_diff'] + df['new_purchase_date_uptonow']
+    df['hist_time_recency_ratio'] = df['hist_purchase_date_diff'] / df['hist_purchase_date_uptonow']
+    df['new_time_recency_ratio'] = df['new_purchase_date_diff'] / df['new_purchase_date_uptonow']
+
+    df['time'] = df['hist_purchase_date_diff'] + df['hist_purchase_date_diff']
+    df['recency'] = df['hist_purchase_date_uptonow'] + df['new_purchase_date_uptonow']
+
     date_features=['hist_purchase_date_max','hist_purchase_date_min',
                    'new_purchase_date_max', 'new_purchase_date_min']
 
@@ -52,10 +60,27 @@ def additional_features(df):
     df['amount_month_ratio_mean']=df['new_amount_month_ratio_mean']+df['hist_amount_month_ratio_mean']
     df['amount_month_ratio_min']=df['new_amount_month_ratio_min']+df['hist_amount_month_ratio_min']
     df['amount_month_ratio_max']=df['new_amount_month_ratio_max']+df['hist_amount_month_ratio_max']
-    df['new_CLV'] = df['new_card_id_count'] * df['new_purchase_amount_sum'] / df['new_month_diff_mean']
-    df['hist_CLV'] = df['hist_card_id_count'] * df['hist_purchase_amount_sum'] / df['hist_month_diff_mean']
+
+    # https://www.kaggle.com/prashanththangavel/c-ustomer-l-ifetime-v-alue
+    df['new_CLV'] = df['new_card_id_count'] * df['new_purchase_amount_sum']
+    df['hist_CLV'] = df['hist_card_id_count'] * df['hist_purchase_amount_sum']
+    df['new_AOV'] = df['new_purchase_amount_sum'] / df['new_card_id_count']
+    df['hist_AOV'] = df['hist_purchase_amount_sum'] / df['hist_card_id_count']
+    df['new_pred_CLV'] = df['new_purchase_date_diff'] * df['new_AOV'] * df['new_purchase_amount_sum'] * df['new_purchase_date_uptonow']
+    df['hist_pred_CLV'] = df['hist_purchase_date_diff'] * df['hist_AOV'] * df['hist_purchase_amount_sum'] * df['hist_purchase_date_uptonow']
+    df['new_CLV_month_diff_ratio'] = df['new_CLV'] / df['new_month_diff_mean']
+    df['hist_CLV_month_diff_ratio'] = df['hist_CLV'] / df['hist_month_diff_mean']
+
     df['CLV_ratio'] = df['new_CLV'] / df['hist_CLV']
-    df['Mothers_Day_2018'] = df['new_Mothers_Day_2018_mean']+ df['hist_Mothers_Day_2018_mean']
+    df['AOV_ratio'] = df['new_AOV'] / df['hist_AOV']
+    df['pred_CLV_ratio'] = df['new_pred_CLV'] / df['hist_pred_CLV']
+    df['CLV_month_diff_ratio'] = df['new_CLV_month_diff_ratio'] / df['hist_CLV_month_diff_ratio']
+
+    df['CLV'] = df['new_CLV'] + df['hist_CLV']
+    df['AOV'] = df['new_AOV'] + df['hist_AOV']
+    df['pred_CLV'] = df['new_pred_CLV'] + df['hist_pred_CLV']
+    df['CLV_month_diff'] = df['new_CLV_month_diff_ratio'] + df['hist_CLV_month_diff_ratio']
+
     df['duration_purchase_date_ratio'] = df['hist_duration_unapproved_min'] / df['new_purchase_date_uptomin']
     df['unapproved_duration_month_diff_ratio'] = df['hist_duration_unapproved_min'] / df['hist_month_diff_unapproved_max']
 
@@ -81,12 +106,12 @@ def main():
     df = df.replace([np.inf, -np.inf], np.nan)
 
     # remove missing variables
-    col_missing = removeMissingVariables(df,0.75)
-    df.drop(col_missing, axis=1, inplace=True)
+#    col_missing = removeMissingVariables(df,0.75)
+#    df.drop(col_missing, axis=1, inplace=True)
 
     # remove correlated variables
-    col_drop = removeCorrelatedVariables(df,0.9)
-    df.drop(col_drop, axis=1, inplace=True)
+#    col_drop = removeCorrelatedVariables(df,0.9)
+#    df.drop(col_drop, axis=1, inplace=True)
 
     # change dtype
     for col in df.columns.tolist():

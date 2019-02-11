@@ -164,6 +164,6 @@ def main(debug=False):
 if __name__ == "__main__":
     submission_file_name = "../output/submission_cb.csv"
     oof_file_name = "../output/oof_cb.csv"
-    configs = json.load(open('../configs/208_cb.json'))
+    configs = json.load(open('../configs/206_cb.json'))
     with timer("Full model run"):
         main(debug=False)

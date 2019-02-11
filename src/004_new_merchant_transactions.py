@@ -42,8 +42,8 @@ def main(num_rows=None):
 
     # purchase amount
     new_merchant_df['purchase_amount_outlier'] = (new_merchant_df['purchase_amount']>0.8).astype(int)
-    new_merchant_df['purchase_amount'] = np.round(new_merchant_df['purchase_amount'] / 0.00150265118 + 497.06,2)
     new_merchant_df['purchase_amount'] = new_merchant_df['purchase_amount'].apply(lambda x: min(x, 0.8))
+    new_merchant_df['purchase_amount'] = np.round(new_merchant_df['purchase_amount'] / 0.00150265118 + 497.06,2)
 
     # additional features
     new_merchant_df['price'] = new_merchant_df['purchase_amount'] / new_merchant_df['installments']

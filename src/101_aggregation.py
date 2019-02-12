@@ -23,6 +23,10 @@ def additional_features(df):
     df['time'] = df['hist_purchase_date_diff'] + df['hist_purchase_date_diff']
     df['recency'] = df['hist_purchase_date_uptonow'] + df['new_purchase_date_uptonow']
 
+    # TODO:
+    # https://www.kaggle.com/raddar/card-id-loyalty-different-points-in-time
+#    df['hist_observation_date']=
+
     date_features=['hist_purchase_date_max','hist_purchase_date_min',
                    'new_purchase_date_max', 'new_purchase_date_min']
 

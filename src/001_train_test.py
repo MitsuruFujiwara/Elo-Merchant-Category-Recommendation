@@ -54,7 +54,7 @@ def main():
     df, cols = one_hot_encoder(df, nan_as_category=False)
 
     for f in ['feature_1','feature_2','feature_3']:
-        order_label = df.groupby([f])['outliers'].mean()
+        order_label = df.groupby([f])['target'].mean()
         df[f] = df[f].map(order_label)
 
     df['feature_sum'] = df['feature_1'] + df['feature_2'] + df['feature_3']

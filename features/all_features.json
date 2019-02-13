@@ -1024,6 +1024,8 @@
         "new_time_recency_ratio",
         "time",
         "recency",
+        "hist_observation_date",
+        "new_observation_date",
         "card_id_total",
         "card_id_cnt_total",
         "card_id_cnt_ratio",

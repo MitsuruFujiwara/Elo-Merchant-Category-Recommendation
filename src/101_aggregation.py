@@ -24,8 +24,8 @@ def additional_features(df):
     df['recency'] = df['hist_purchase_date_uptonow'] + df['new_purchase_date_uptonow']
 
     # https://www.kaggle.com/raddar/card-id-loyalty-different-points-in-time
-    df['hist_observation_date']= df.apply(lambda x: pd.to_datetime(x['hist_purchase_date_max']*10**9)-pd.DateOffset(months=x['hist_month_lag_max']), axis=1)
-    df['new_observation_date']=df.apply(lambda x: np.nan if np.isnan(x['new_month_lag_min']) else pd.to_datetime(x['new_purchase_date_min']*10**9)-pd.DateOffset(months=x['new_month_lag_min']-1), axis=1)
+    df['hist_observation_date']= df.apply(lambda x: pd.to_datetime(x['hist_purchase_date_max'])-pd.DateOffset(months=x['hist_month_lag_max']), axis=1)
+    df['new_observation_date']=df.apply(lambda x: np.nan if np.isnan(x['new_month_lag_min']) else pd.to_datetime(x['new_purchase_date_min'])-pd.DateOffset(months=x['new_month_lag_min']-1), axis=1)
 
     df['hist_observation_date'] = df['hist_observation_date'].dt.to_period('M').dt.to_timestamp()+pd.DateOffset(months=1)
     df['new_observation_date'] = df['new_observation_date'].dt.to_period('M').dt.to_timestamp()

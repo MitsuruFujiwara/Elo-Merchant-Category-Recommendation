@@ -1,11 +1,14 @@
 
-import xgboost
-import numpy as np
-import pandas as pd
-import optuna
 import gc
+import json
+import numpy as np
+import optuna
+import pandas as pd
+import xgboost
 
+from glob import glob
 from sklearn.model_selection import KFold, StratifiedKFold
+from tqdm import tqdm
 
 from utils import FEATS_EXCLUDED, NUM_FOLDS, loadpkl, line_notify
 
@@ -15,7 +18,25 @@ from utils import FEATS_EXCLUDED, NUM_FOLDS, loadpkl, line_notify
 ################################################################################
 
 # load datasets
-TRAIN_DF = loadpkl('../output/train_df.pkl')
+CONFIGS = json.load(open('../configs/205_xgb.json'))
+
+# load feathers
+FILES = sorted(glob('../features/*.feather'))
+DF = pd.concat([pd.read_feather(f) for f in tqdm(FILES, mininterval=60)], axis=1)
+
+# set card_id as index
+DF.set_index('card_id', inplace=True)
+
+# use selected features
+DF = DF[CONFIGS['features']]
+
+# split train & test
+TRAIN_DF = DF[DF['target'].notnull()]
+TEST_DF = DF[DF['target'].isnull()]
+
+del DF, TEST_DF
+gc.collect()
+
 FEATS = [f for f in TRAIN_DF.columns if f not in FEATS_EXCLUDED]
 
 def objective(trial):

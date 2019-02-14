@@ -35,6 +35,9 @@ def additional_features(df):
         order_label = df.groupby([f])['outliers'].mean()
         df[f] = df[f].map(order_label)
 
+    df['observation_date'] = df['new_observation_date'] + df['hist_observation_date']
+    df['observation_date_ratio'] = df['new_observation_date'] / df['hist_observation_date']
+
     date_features=['hist_purchase_date_max','hist_purchase_date_min',
                    'new_purchase_date_max', 'new_purchase_date_min']
 

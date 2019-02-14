@@ -209,6 +209,8 @@
       "pred_CLV",
       "CLV_month_diff",
       "time",
-      "recency"
+      "recency",
+      "observation_date",
+      "observation_date_ratio"
     ]
 }

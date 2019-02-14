@@ -32,7 +32,7 @@ def additional_features(df):
 
     # target encoding
     for f in ['hist_observation_date','new_observation_date']:
-        order_label = df.groupby([f])['target'].mean()
+        order_label = df.groupby([f])['outliers'].mean()
         df[f] = df[f].map(order_label)
 
     date_features=['hist_purchase_date_max','hist_purchase_date_min',

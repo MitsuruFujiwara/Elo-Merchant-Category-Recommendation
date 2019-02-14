@@ -81,21 +81,19 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
                 'device' : 'gpu',
                 'gpu_use_dp':False,
                 'task': 'train',
-                'boosting': 'goss',
+                'boosting': 'gbdt',
                 'objective': 'regression',
                 'metric': 'rmse',
                 'learning_rate': 0.01,
-                'subsample': 0.9855232997390695,
-                'max_depth': 7,
-                'top_rate': 0.9064148448434349,
-                'num_leaves': 63,
-                'min_child_weight': 41.9612869171337,
-                'other_rate': 0.0721768246018207,
-                'reg_alpha': 9.677537745007898,
-                'colsample_bytree': 0.5665320670155495,
-                'min_split_gain': 9.820197773625843,
-                'reg_lambda': 8.2532317400459,
-                'min_data_in_leaf': 21,
+                'subsample': 0.886241869129712,
+                'max_depth': 8,
+                'num_leaves': 62,
+                'min_child_weight': 6.57341556730672,
+                'reg_alpha': 6.1088840375094,
+                'colsample_bytree': 0.349258806543783,
+                'min_split_gain': 4.87221428238018,
+                'reg_lambda': 9.64401653311102,
+                'min_data_in_leaf': 39,
                 'verbose': -1,
                 'seed':int(2**n_fold),
                 'bagging_seed':int(2**n_fold),
@@ -160,7 +158,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
 #        line_notify('Adjusted Full RMSE score %.6f' % full_rmse_adj)
 
         # API経由でsubmit
-        submit(submission_file_name, comment='model201 cv: %.6f' % full_rmse)
+#        submit(submission_file_name, comment='model201 cv: %.6f' % full_rmse)
 
 def main(debug=False):
     with timer("Load Datasets"):

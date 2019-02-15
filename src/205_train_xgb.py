@@ -152,7 +152,7 @@ def kfold_xgboost(train_df, test_df, num_folds, stratified = False, debug= False
 #        line_notify('Adjusted Full RMSE score %.6f' % full_rmse_adj)
 
         # API経由でsubmit
-#        submit(submission_file_name, comment='model205 cv: %.6f' % full_rmse)
+        submit(submission_file_name, comment='model205 cv: %.6f' % full_rmse)
 
 def main(debug=False, use_pkl=False):
     with timer("Load Datasets"):

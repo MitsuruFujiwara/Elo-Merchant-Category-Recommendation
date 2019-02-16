@@ -58,7 +58,6 @@ def main():
         df[f] = df[f].map(order_label)
 
     df['feature_sum'] = df['feature_1'] + df['feature_2'] + df['feature_3']
-    df['feature_mean'] = df['feature_sum']/3
     df['feature_max'] = df[['feature_1', 'feature_2', 'feature_3']].max(axis=1)
     df['feature_min'] = df[['feature_1', 'feature_2', 'feature_3']].min(axis=1)
     df['feature_var'] = df[['feature_1', 'feature_2', 'feature_3']].std(axis=1)

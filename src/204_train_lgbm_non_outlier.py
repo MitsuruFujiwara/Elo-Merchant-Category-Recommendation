@@ -51,8 +51,9 @@ def kfold_lightgbm(train, test, num_folds, stratified = False, debug= False):
 
     # only use non-outlier
     train_df = train[train['outliers']==0]
-    test_df = test[test['outliers']==0]
-
+#    test_df = test[test['outliers']==0]
+    test_df = test
+    
     print("Starting LightGBM. Train shape: {}, test shape: {}".format(train_df.shape, test_df.shape))
 
     # Cross validation model

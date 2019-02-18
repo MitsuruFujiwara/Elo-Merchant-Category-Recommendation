@@ -17,7 +17,7 @@ from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import KFold, StratifiedKFold
 from tqdm import tqdm
 
-from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, rmse, submit
+from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, rmse, submit, to_feature
 
 ################################################################################
 # Model For Outliers Classification
@@ -156,9 +156,14 @@ def kfold_lightgbm(df, num_folds, stratified = False, debug= False):
 
         print('q_train: {}, q_test: {}'.format(q_train, q_test))
 
-        # save pkl
-        save2pkl('../output/train_df.pkl', train_df)
-        save2pkl('../output/test_df.pkl', test_df)
+        # merge
+        df = train_df.append(test_df)
+
+        del train_df, test_df
+        gc.collect()
+
+        # save as feather
+        to_feature(df[['outliers','Outlier_Likelyhood']], '../features')
 
 def main(debug=False, use_pkl=False):
     with timer("Load Datasets"):

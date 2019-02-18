@@ -49,6 +49,7 @@
       "hist_day_mean",
       "hist_day_min",
       "hist_day_nunique",
+      "hist_duration_sum",
       "hist_duration_max",
       "hist_duration_mean",
       "hist_duration_min",
@@ -177,9 +178,8 @@
       "new_weekofyear_nunique",
       "price_max",
       "price_mean",
-      "price_total",
-      "purchase_amount_min",
       "purchase_amount_ratio",
-      "quarter"
+      "quarter",
+      "AOV_ratio"
     ]
 }

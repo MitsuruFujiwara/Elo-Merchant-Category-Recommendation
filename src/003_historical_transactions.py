@@ -109,7 +109,7 @@ def main(num_rows=None):
     gc.collect()
 
     col_unique =['subsector_id', 'merchant_id', 'merchant_category_id']
-    col_seas = ['month', 'hour', 'weekofyear', 'weekday', 'day']
+    col_seas = ['month', 'hour', 'weekofyear', 'weekday', 'day', 'weekend']
 
     aggs = {}
     for col in col_unique:
@@ -149,6 +149,7 @@ def main(num_rows=None):
     aggs['is_holiday'] = ['mean']
     aggs['price'] = ['sum','max','min','mean','var','skew']
     aggs['purchase_amount_outlier']=['mean']
+    """
     aggs['Christmas_Day_2017'] = ['mean']
     aggs['Mothers_Day_2017'] = ['mean']
     aggs['fathers_day_2017'] = ['mean']
@@ -156,6 +157,7 @@ def main(num_rows=None):
     aggs['Valentine_Day_2017'] = ['mean']
     aggs['Black_Friday_2017'] = ['mean']
     aggs['Mothers_Day_2018'] = ['mean']
+    """
     aggs['duration']=['sum','max','min','mean','var','skew']
     aggs['duration_approved']=['sum','max','min','mean','var','skew']
     aggs['duration_unapproved']=['sum','max','min','mean','var','skew']

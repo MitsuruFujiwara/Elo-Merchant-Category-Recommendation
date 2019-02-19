@@ -83,14 +83,14 @@ def kfold_xgboost(train_df, test_df, num_folds, stratified = False, debug= False
                 'eval_metric':'rmse',
                 'silent':1,
                 'eta': 0.01,
-                'max_leaves': 63,
-                'colsample_bytree': 0.5665320670155495,
-                'subsample': 0.9855232997390695,
-                'max_depth': 7,
-                'reg_alpha': 9.677537745007898,
-                'reg_lambda': 8.2532317400459,
-                'gamma': 9.820197773625843,
-                'min_child_weight': 41.9612869171337,
+                'max_leaves': 57,
+                'colsample_bytree': 0.3427965667281594,
+                'subsample': 0.0038921002658447446,
+                'max_depth': 13,
+                'reg_alpha': 8.061618190800424,
+                'reg_lambda': 8.916169167876497,
+                'gamma': 7.618501981550642,
+                'min_child_weight': 0.33391076707098044,
                 'tree_method': 'gpu_hist', # GPU parameter
                 'predictor': 'gpu_predictor', # GPU parameter
                 'seed':int(2**n_fold)
@@ -177,6 +177,7 @@ def main(debug=False, use_pkl=False):
 if __name__ == "__main__":
     submission_file_name = "../output/submission_xgb.csv"
     oof_file_name = "../output/oof_xgb.csv"
-    configs = json.load(open('../configs/205_xgb.json'))
+#    configs = json.load(open('../configs/205_xgb.json'))
+    configs = json.load(open('../configs/207_lgbm_best.json'))
     with timer("Full model run"):
         main(debug=False,use_pkl=True)

@@ -149,16 +149,16 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
         train_df = train_df.reset_index()
 
         # targetが一定値以下のものをoutlierで埋める
-#        q_train = train_df['OOF_PRED'].quantile(.0007)
-#        train_df.loc[:,'OOF_PRED'] = train_df['OOF_PRED'].apply(lambda x: x if x > q_train else -33.21928095)
+        q_train = train_df['OOF_PRED'].quantile(.0007)
+        train_df.loc[:,'OOF_PRED'] = train_df['OOF_PRED'].apply(lambda x: x if x > q_train else -33.21928095)
         train_df[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
 
         # Adjusted Full RMSEスコアの表示 & LINE通知
-#        full_rmse_adj = rmse(train_df['target'], train_df['OOF_PRED'])
-#        line_notify('Adjusted Full RMSE score %.6f' % full_rmse_adj)
+        full_rmse_adj = rmse(train_df['target'], train_df['OOF_PRED'])
+        line_notify('Adjusted Full RMSE score %.6f' % full_rmse_adj)
 
         # API経由でsubmit
-        submit(submission_file_name, comment='model201 cv: %.6f' % full_rmse)
+        submit(submission_file_name, comment='model201 cv: %.6f' % full_rmse_adj)
 
 def main(debug=False):
     with timer("Load Datasets"):

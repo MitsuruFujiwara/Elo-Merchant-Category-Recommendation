@@ -21,11 +21,12 @@ def getBestThreshold(act, pred):
         if _rmse < rmse_bst:
             rmse_bst = _rmse
             q = _q
-        print("q: {:.4f}, rmse: {:.10f}".format(_q, _rmse))
+        if _q % 0.0001==0:
+            print("q: {:.4f}, rmse: {:.10f}".format(_q, _rmse))
 
     print("best q: {:.4f}, best rmse: {:.10f}".format(q, rmse_bst))
 
-    return q
+    return _threshold
 
 def main():
     # submitファイルをロード
@@ -53,10 +54,12 @@ def main():
     train_df = loadpkl('../output/train_df.pkl')
 
     # get best threshold
-    q = getBestThreshold(train_df['target'], oof_preds)
+    th = getBestThreshold(train_df['target'], oof_preds)
 #    th = sub['target'].quantile(.0004)
-    sub.loc[:,'target']=sub['target'].apply(lambda x: x if x > th else -33.21928095)
+#    sub.loc[:,'target']=sub['target'].apply(lambda x: x if x > th else -33.21928095)
+    sub.loc[:,'target']=sub['target'].apply(lambda x: x if x > th else -15)
 #    oof_preds=oof_preds.apply(lambda x: x if x > th else -33.21928095)
+    oof_preds=oof_preds.apply(lambda x: x if x > th else -15)
 
     # local cv scoreを算出
     local_rmse = rmse(train_df['target'], oof_preds)
@@ -71,7 +74,7 @@ def main():
     sub[['card_id', 'target']].to_csv(submission_file_name, index=False)
 
     # API経由でsubmit
-    submit(submission_file_name, comment='model301 cv: %.6f' % local_rmse)
+#    submit(submission_file_name, comment='model301 cv: %.6f' % local_rmse)
 
 if __name__ == '__main__':
     submission_file_name = "../output/submission_blend.csv"

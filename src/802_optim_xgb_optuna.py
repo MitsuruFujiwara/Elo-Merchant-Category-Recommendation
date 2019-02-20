@@ -50,10 +50,19 @@ def objective(trial):
              'eval_metric':'rmse',
              'silent':1,
              'eta': 0.01,
-             'booster': trial.suggest_categorical('booster', ['gbtree', 'gblinear', 'dart']),
+             'booster': 'gbtree'
+#             'booster': trial.suggest_categorical('booster', ['gbtree', 'gblinear', 'dart']),
              'lambda': trial.suggest_loguniform('lambda', 1e-8, 1.0),
              'alpha': trial.suggest_loguniform('alpha', 1e-8, 1.0),
              }
+    params['gamma'] = gamma
+    params['max_depth'] = int(max_depth)
+    params['min_child_weight'] = min_child_weight
+    params['subsample'] = max(min(subsample, 1), 0)
+    params['colsample_bytree'] = max(min(colsample_bytree, 1), 0)
+    params['colsample_bylevel'] = max(min(colsample_bylevel, 1), 0)
+    params['alpha'] = max(alpha, 0)
+    params['lambda'] = max(_lambda, 0)
 
     if param['booster'] == 'gbtree' or param['booster'] == 'dart':
         param['max_depth'] = trial.suggest_int('max_depth', 1, 9)

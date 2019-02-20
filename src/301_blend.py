@@ -21,12 +21,13 @@ def getBestThreshold(act, pred):
         if _rmse < rmse_bst:
             rmse_bst = _rmse
             q = _q
+            th = _threshold
         if _q % 0.0001==0:
-            print("q: {:.4f}, rmse: {:.10f}".format(_q, _rmse))
+            print("q: {:.4f}, th: {:.4f}, rmse: {:.10f}".format(_q, _threshold, _rmse))
 
-    print("best q: {:.4f}, best rmse: {:.10f}".format(q, rmse_bst))
+    print("best q: {:.4f}, best th: {:.4f}, best rmse: {:.10f}".format(q, th, rmse_bst))
 
-    return _threshold
+    return th
 
 def main():
     # submitファイルをロード
@@ -74,7 +75,7 @@ def main():
     sub[['card_id', 'target']].to_csv(submission_file_name, index=False)
 
     # API経由でsubmit
-#    submit(submission_file_name, comment='model301 cv: %.6f' % local_rmse)
+    submit(submission_file_name, comment='model301 cv: %.6f' % local_rmse)
 
 if __name__ == '__main__':
     submission_file_name = "../output/submission_blend.csv"

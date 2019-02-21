@@ -59,7 +59,7 @@ def objective(trial):
              }
 
     param['gamma'] = trial.suggest_loguniform('gamma', 1e-8, 1.0)
-    param['max_depth'] = trial.suggest_int('max_depth', 1, 16)
+    param['max_depth'] = trial.suggest_int('max_depth', 1, 12)
     param['min_child_weight'] = trial.suggest_uniform('min_child_weight', 0, 45)
     param['subsample']=trial.suggest_uniform('subsample', 0.001, 1)
     param['colsample_bytree']=trial.suggest_uniform('colsample_bytree', 0.001, 1)

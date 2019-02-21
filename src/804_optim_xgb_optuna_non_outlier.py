@@ -40,6 +40,9 @@ TEST_DF = DF[DF['target'].isnull()]
 del DF, TEST_DF
 gc.collect()
 
+# non-outlier
+TRAIN_DF = TRAIN_DF[TRAIN_DF['outliers']==0]
+
 FEATS = [f for f in TRAIN_DF.columns if f not in FEATS_EXCLUDED]
 
 def objective(trial):
@@ -59,7 +62,7 @@ def objective(trial):
              }
 
     param['gamma'] = trial.suggest_loguniform('gamma', 1e-8, 1.0)
-    param['max_depth'] = trial.suggest_int('max_depth', 1, 16)
+    param['max_depth'] = trial.suggest_int('max_depth', 1, 12)
     param['min_child_weight'] = trial.suggest_uniform('min_child_weight', 0, 45)
     param['subsample']=trial.suggest_uniform('subsample', 0.001, 1)
     param['colsample_bytree']=trial.suggest_uniform('colsample_bytree', 0.001, 1)
@@ -97,6 +100,6 @@ if __name__ == '__main__':
 
     # save result
     hist_df = study.trials_dataframe()
-    hist_df.to_csv("../output/optuna_result_xgb.csv")
+    hist_df.to_csv("../output/optuna_result_xgb_non_outlier.csv")
 
-    line_notify('optuna XGBoost finished.')
+    line_notify('optuna XGBoost Non Outlier finished.')

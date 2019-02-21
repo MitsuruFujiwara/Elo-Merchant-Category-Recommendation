@@ -9,6 +9,6 @@
 #python 301_blend.py
 python 801_optim_lgbm_optuna.py
 python 802_optim_lgbm_optuna_non_outlier.py
-python 801_optim_lgbm_optuna.py
-python 802_optim_xgb_optuna.py
-python 803_optim_cb_optuna.py
+python 803_optim_xgb_optuna.py
+python 804_optim_xgb_optuna_non_outlier.py
+python 805_optim_cb_optuna.py

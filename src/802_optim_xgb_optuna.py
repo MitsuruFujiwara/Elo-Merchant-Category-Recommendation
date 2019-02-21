@@ -65,12 +65,14 @@ def objective(trial):
     param['colsample_bytree']=trial.suggest_uniform('colsample_bytree', 0.001, 1)
     param['colsample_bylevel'] = trial.suggest_uniform('colsample_bylevel', 0.001, 1)
 
+    folds = StratifiedKFold(n_splits=NUM_FOLDS, shuffle=True, random_state=4950)
+
     clf = xgboost.cv(params=param,
                      dtrain=xgb_train,
                      metrics=['rmse'],
                      nfold=NUM_FOLDS,
 #                     stratified=True,
-#                     folds=folds.split(TRAIN_DF[FEATS], TRAIN_DF['outliers']),
+                     folds=list(folds.split(TRAIN_DF[FEATS], TRAIN_DF['outliers'])),
                      num_boost_round=10000, # early stopありなのでここは大きめの数字にしてます
                      early_stopping_rounds=200,
                      verbose_eval=100,

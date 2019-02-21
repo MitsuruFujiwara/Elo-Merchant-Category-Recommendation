@@ -34,6 +34,9 @@ DF = DF[CONFIGS['features']]
 TRAIN_DF = DF[DF['target'].notnull()]
 TEST_DF = DF[DF['target'].isnull()]
 
+# non-outlier
+TRAIN_DF = TRAIN_DF[TRAIN_DF['outliers']==0]
+
 del DF, TEST_DF
 gc.collect()
 

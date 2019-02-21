@@ -16,7 +16,7 @@ from pandas.core.common import SettingWithCopyWarning
 from sklearn.model_selection import KFold, StratifiedKFold
 from tqdm import tqdm
 
-from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, rmse, submit
+from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, rmse, submit, to_feature
 
 ################################################################################
 # Model For Non-Outlier
@@ -51,9 +51,8 @@ def kfold_lightgbm(train, test, num_folds, stratified = False, debug= False):
 
     # only use non-outlier
     train_df = train[train['outliers']==0]
-#    test_df = test[test['outliers']==0]
     test_df = test
-    
+
     print("Starting LightGBM. Train shape: {}, test shape: {}".format(train_df.shape, test_df.shape))
 
     # Cross validation model
@@ -147,7 +146,7 @@ def kfold_lightgbm(train, test, num_folds, stratified = False, debug= False):
 
     if not debug:
         # 提出データの予測値を保存
-        test.loc[test['outliers']==0,'target'] = sub_preds
+        test.loc[:,'target'] = sub_preds
         test = test.reset_index()
         test[['card_id', 'target']].to_csv(submission_file_name, index=False)
 
@@ -155,13 +154,6 @@ def kfold_lightgbm(train, test, num_folds, stratified = False, debug= False):
         train.loc[train['outliers']==0,'OOF_PRED'] = oof_preds
         train = train.reset_index()
         train[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
-
-        # save pkl
-        save2pkl('../output/train_df.pkl', train)
-        save2pkl('../output/test_df.pkl', test)
-
-        # API経由でsubmit
-        submit(submission_file_name, comment='model104 cv: %.6f' % full_rmse)
 
 def main(debug=False, use_pkl=False):
     with timer("Load Datasets"):
@@ -184,8 +176,8 @@ def main(debug=False, use_pkl=False):
         kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, stratified=False, debug=debug)
 
 if __name__ == "__main__":
-    submission_file_name = "../output/submission.csv"
-    oof_file_name = "../output/oof_lgbm.csv"
-    configs = json.load(open('../configs/201_lgbm.json'))
+    submission_file_name = "../output/submission_non_outlier.csv"
+    oof_file_name = "../output/oof_lgbm_non_outlier.csv"
+    configs = json.load(open('../configs/202_lgbm_binary.json'))
     with timer("Full model run"):
         main(debug=False,use_pkl=True)

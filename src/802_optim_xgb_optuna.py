@@ -5,6 +5,7 @@ import numpy as np
 import optuna
 import pandas as pd
 import xgboost
+import warnings
 
 from glob import glob
 from sklearn.model_selection import KFold, StratifiedKFold
@@ -16,6 +17,8 @@ from utils import FEATS_EXCLUDED, NUM_FOLDS, loadpkl, line_notify
 # optunaによるhyper parameter最適化
 # 参考: https://github.com/pfnet/optuna/blob/master/examples/lightgbm_simple.py
 ################################################################################
+
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # load datasets
 CONFIGS = json.load(open('../configs/205_xgb.json'))
@@ -50,37 +53,18 @@ def objective(trial):
              'eval_metric':'rmse',
              'silent':1,
              'eta': 0.01,
-             'booster': 'gbtree'
-#             'booster': trial.suggest_categorical('booster', ['gbtree', 'gblinear', 'dart']),
+             'booster': 'gbtree',
              'lambda': trial.suggest_loguniform('lambda', 1e-8, 1.0),
              'alpha': trial.suggest_loguniform('alpha', 1e-8, 1.0),
              }
-    params['gamma'] = gamma
-    params['max_depth'] = int(max_depth)
-    params['min_child_weight'] = min_child_weight
-    params['subsample'] = max(min(subsample, 1), 0)
-    params['colsample_bytree'] = max(min(colsample_bytree, 1), 0)
-    params['colsample_bylevel'] = max(min(colsample_bylevel, 1), 0)
-    params['alpha'] = max(alpha, 0)
-    params['lambda'] = max(_lambda, 0)
 
-    if param['booster'] == 'gbtree' or param['booster'] == 'dart':
-        param['max_depth'] = trial.suggest_int('max_depth', 1, 9)
-        param['eta'] = trial.suggest_loguniform('eta', 1e-8, 1.0)
-        param['gamma'] = trial.suggest_loguniform('gamma', 1e-8, 1.0)
-        param['grow_policy'] = trial.suggest_categorical('grow_policy', ['depthwise', 'lossguide'])
-#        param['min_child_weight'] = trial.suggest_uniform('min_child_weight', 0, 45),
-#        param['subsample'] = trial.suggest_uniform('subsample', 0.001, 1),
-#        param['colsample_bytree'] = trial.suggest_uniform('colsample_bytree', 0.001, 1),
-#        param['colsample_bylevel'] = trial.suggest_uniform('colsample_bylevel', 0.001, 1),
-    if param['booster'] == 'dart':
-        param['sample_type'] = trial.suggest_categorical('sample_type', ['uniform', 'weighted'])
-        param['normalize_type'] = trial.suggest_categorical('normalize_type', ['tree', 'forest'])
-        param['rate_drop'] = trial.suggest_loguniform('rate_drop', 1e-8, 1.0)
-        param['skip_drop'] = trial.suggest_loguniform('skip_drop', 1e-8, 1.0)
+    param['gamma'] = trial.suggest_loguniform('gamma', 1e-8, 1.0)
+    param['max_depth'] = trial.suggest_int('max_depth', 1, 9)
+    param['min_child_weight'] = trial.suggest_uniform('min_child_weight', 0, 45)
+    param['subsample']=trial.suggest_uniform('subsample', 0.001, 1)
+    param['colsample_bytree']=trial.suggest_uniform('colsample_bytree', 0.001, 1)
+    param['colsample_bylevel'] = trial.suggest_uniform('colsample_bylevel', 0.001, 1)
 
-#    folds = StratifiedKFold(n_splits=NUM_FOLDS, shuffle=True, random_state=4950)
-#    print(folds.split(TRAIN_DF[FEATS], TRAIN_DF['outliers']))
     clf = xgboost.cv(params=param,
                      dtrain=xgb_train,
                      metrics=['rmse'],

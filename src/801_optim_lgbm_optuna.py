@@ -34,6 +34,9 @@ DF = DF[CONFIGS['features']]
 TRAIN_DF = DF[DF['target'].notnull()]
 TEST_DF = DF[DF['target'].isnull()]
 
+# non-outlier
+TRAIN_DF = TRAIN_DF[TRAIN_DF['outliers']==0]
+
 del DF, TEST_DF
 gc.collect()
 
@@ -55,7 +58,7 @@ def objective(trial):
               'num_leaves': trial.suggest_int('num_leaves', 16, 64),
               'colsample_bytree': trial.suggest_uniform('colsample_bytree', 0.001, 1),
               'subsample': trial.suggest_uniform('subsample', 0.001, 1),
-              'max_depth': trial.suggest_int('max_depth', 5, 20),
+              'max_depth': trial.suggest_int('max_depth', 1, 16),
               'reg_alpha': trial.suggest_uniform('reg_alpha', 0, 10),
               'reg_lambda': trial.suggest_uniform('reg_lambda', 0, 10),
               'min_split_gain': trial.suggest_uniform('min_split_gain', 0, 10),

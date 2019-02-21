@@ -34,10 +34,10 @@ def main():
     df['first_active_month'] = pd.to_datetime(df['first_active_month'])
 
     # datetime features
-    df['month'] = df['first_active_month'].dt.month.fillna(0).astype(int).astype(object)
-    df['year'] = df['first_active_month'].dt.year.fillna(0).astype(int).astype(object)
-    df['dayofweek'] = df['first_active_month'].dt.dayofweek.fillna(0).astype(int).astype(object)
-    df['weekofyear'] = df['first_active_month'].dt.weekofyear.fillna(0).astype(int).astype(object)
+    df['month'] = df['first_active_month'].dt.month.fillna(0).astype(int)
+    df['year'] = df['first_active_month'].dt.year.fillna(0).astype(int)
+    df['dayofweek'] = df['first_active_month'].dt.dayofweek.fillna(0).astype(int)
+    df['weekofyear'] = df['first_active_month'].dt.weekofyear.fillna(0).astype(int)
     df['quarter'] = df['first_active_month'].dt.quarter
     df['month_year'] = df['month'].astype(str)+'_'+df['year'].astype(str)
     df['elapsed_time'] = (pd.to_datetime('2018-03-01') - df['first_active_month']).dt.days
@@ -45,6 +45,11 @@ def main():
     # one hot encoding
 #    df, cols = one_hot_encoder(df, nan_as_category=False)
 
+    # target encoding
+    for f in ['month','year','dayofweek','weekofyear','quarter','month_year']:
+        order_label = df.groupby([f])['outliers'].mean()
+        df[f] = df[f].map(order_label)
+    
     for f in ['feature_1','feature_2','feature_3']:
         order_label = df.groupby([f])['outliers'].mean()
         df[f] = df[f].map(order_label)

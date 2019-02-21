@@ -10,7 +10,7 @@ from multiprocessing import Pool, cpu_count
 from sklearn.metrics import mean_squared_error
 from time import time, sleep
 
-NUM_FOLDS = 3
+NUM_FOLDS = 5
 
 #feats_drop = pd.read_csv('feats_drop.csv')['feature'].tolist()
 

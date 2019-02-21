@@ -6,9 +6,9 @@ import pandas as pd
 
 from boruta import BorutaPy
 from glob import glob
-from lightgbm import LGBMRegressor
+#from lightgbm import LGBMRegressor
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.feature_selection import RFECV
+#from sklearn.feature_selection import RFECV
 from tqdm import tqdm
 
 from utils import line_notify, FEATS_EXCLUDED
@@ -29,32 +29,18 @@ def main():
     del df
     gc.collect()
 
+    train_df = train_df[:10000] # debug
+
     # fill nan
     train_df = train_df.replace([np.inf, -np.inf], np.nan)
     train_df.fillna(0, inplace=True)
 
-    train_df = train_df[:10000] # debug
-
-    # Lightgbm Regresssor
-    lgbmclf = LGBMRegressor(boosting_type='rf',
-                            objective='regression',
-                            num_iteration=10000,
-                            num_leaves=31,
-                            min_data_in_leaf=27,
-                            max_depth=-1,
-                            learning_rate=0.015,
-                            feature_fraction= 0.9,
-                            bagging_freq= 1,
-                            bagging_fraction= 0.9,
-                            bagging_seed= 11,
-                            metric= 'rmse',
-                            lambda_l1=0.1,
-                            verbosity= -1,
-                            nthread= 4,
-                            random_state= 4950)
+    # RandomForest Regressor
+    rfc = RandomForestRegressor(n_estimators=100, n_jobs=-1, max_depth=6)
 
     # define Boruta feature selection method
-    feat_selector = BorutaPy(lgbmclf, n_estimators='auto', verbose=-1)
+    print('Starting Boruta')
+    feat_selector = BorutaPy(rfc, n_estimators='auto', verbose=2, perc=100)
 #    feat_selector = BorutaPy(lgbmclf)
 
     # features
@@ -77,4 +63,5 @@ def main():
 
 if __name__ == '__main__':
     configs = json.load(open('../configs/200_all.json'))
+#    configs = json.load(open('../configs/207_lgbm_best.json'))
     main()

@@ -59,7 +59,7 @@ def objective(trial):
              }
 
     param['gamma'] = trial.suggest_loguniform('gamma', 1e-8, 1.0)
-    param['max_depth'] = trial.suggest_int('max_depth', 1, 9)
+    param['max_depth'] = trial.suggest_int('max_depth', 1, 16)
     param['min_child_weight'] = trial.suggest_uniform('min_child_weight', 0, 45)
     param['subsample']=trial.suggest_uniform('subsample', 0.001, 1)
     param['colsample_bytree']=trial.suggest_uniform('colsample_bytree', 0.001, 1)
@@ -71,9 +71,8 @@ def objective(trial):
                      dtrain=xgb_train,
                      metrics=['rmse'],
                      nfold=NUM_FOLDS,
-#                     stratified=True,
                      folds=list(folds.split(TRAIN_DF[FEATS], TRAIN_DF['outliers'])),
-                     num_boost_round=10000, # early stopありなのでここは大きめの数字にしてます
+                     num_boost_round=10000,
                      early_stopping_rounds=200,
                      verbose_eval=100,
                      seed=47

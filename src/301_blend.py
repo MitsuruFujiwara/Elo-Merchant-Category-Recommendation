@@ -91,7 +91,7 @@ def main():
     sub[['card_id', 'target']].to_csv(submission_file_name, index=False)
 
     # API経由でsubmit
-#    submit(submission_file_name, comment='model301 cv: %.6f' % local_rmse)
+    submit(submission_file_name, comment='model301 cv: %.6f' % local_rmse)
 
 if __name__ == '__main__':
     submission_file_name = "../output/submission_blend.csv"

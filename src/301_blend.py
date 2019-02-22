@@ -71,12 +71,12 @@ def main():
     oof_preds.loc[(train_df['outliers']==0)&(oof_preds['OOF_PRED']>0),'OOF_PRED'] = oof_preds_non_outlier.loc[oof_preds['OOF_PRED']>0,'OOF_PRED']
 
     # get best threshold
-    th = getBestThreshold(train_df['target'], oof_preds['OOF_PRED'])
-#    th = sub['target'].quantile(.0004)
-#    sub.loc[:,'target']=sub['target'].apply(lambda x: x if x > th else -33.21928095)
-    sub.loc[:,'target']=sub['target'].apply(lambda x: x if x > th else -15)
-#    oof_preds=oof_preds.apply(lambda x: x if x > th else -33.21928095)
-    oof_preds['OOF_PRED']=oof_preds['OOF_PRED'].apply(lambda x: x if x > th else -15)
+#    th = getBestThreshold(train_df['target'], oof_preds['OOF_PRED'])
+    th = sub['target'].quantile(.0005)
+    sub.loc[:,'target']=sub['target'].apply(lambda x: x if x > th else -33.21928095)
+#    sub.loc[:,'target']=sub['target'].apply(lambda x: x if x > th else -15)
+    oof_preds['OOF_PRED']=oof_preds['OOF_PRED'].apply(lambda x: x if x > th else -33.21928095)
+#    oof_preds['OOF_PRED']=oof_preds['OOF_PRED'].apply(lambda x: x if x > th else -15)
 
     # local cv scoreを算出
     local_rmse = rmse(train_df['target'], oof_preds)

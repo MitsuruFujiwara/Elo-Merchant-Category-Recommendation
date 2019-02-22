@@ -146,7 +146,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
         train_df[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
 
         # API経由でsubmit
-        submit(submission_file_name, comment='model201 cv: %.6f' % full_rmse_adj)
+        submit(submission_file_name, comment='model201 cv: %.6f' % full_rmse)
 
 def main(debug=False):
     with timer("Load Datasets"):
@@ -171,7 +171,6 @@ def main(debug=False):
 if __name__ == "__main__":
     submission_file_name = "../output/submission_lgbm.csv"
     oof_file_name = "../output/oof_lgbm.csv"
-#    configs = json.load(open('../configs/201_lgbm.json'))
-    configs = json.load(open('../configs/tmp_features.json'))
+    configs = json.load(open('../configs/201_lgbm.json'))
     with timer("Full model run"):
         main(debug=False)

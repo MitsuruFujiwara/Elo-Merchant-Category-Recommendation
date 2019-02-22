@@ -47,7 +47,12 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
     plt.savefig(outputpath)
 
 # XGBoost GBDT with KFold or Stratified KFold
-def kfold_xgboost(train_df, test_df, num_folds, stratified = False, debug= False):
+def kfold_xgboost(train, test, num_folds, stratified = False, debug= False):
+
+    # only use non-outlier
+    train_df = train[train['outliers']==0]
+    test_df = test
+
     print("Starting XGBoost. Train shape: {}, test shape: {}".format(train_df.shape, test_df.shape))
 
     # Cross validation model
@@ -175,9 +180,8 @@ def main(debug=False, use_pkl=False):
         kfold_xgboost(train_df, test_df, num_folds=NUM_FOLDS, stratified=False, debug=debug)
 
 if __name__ == "__main__":
-    submission_file_name = "../output/submission_xgb.csv"
-    oof_file_name = "../output/oof_xgb.csv"
-    configs = json.load(open('../configs/205_xgb.json'))
-#    configs = json.load(open('../configs/207_lgbm_best.json'))
+    submission_file_name = "../output/submission_xgb_non_outlier.csv"
+    oof_file_name = "../output/oof_xgb_non_outlier.csv"
+    configs = json.load(open('../configs/204_xgb_non_outlier.json'))
     with timer("Full model run"):
         main(debug=False,use_pkl=True)

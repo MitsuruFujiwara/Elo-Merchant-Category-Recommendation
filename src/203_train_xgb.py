@@ -52,9 +52,9 @@ def kfold_xgboost(train_df, test_df, num_folds, stratified = False, debug= False
 
     # Cross validation model
     if stratified:
-        folds = StratifiedKFold(n_splits= num_folds, shuffle=True, random_state=4950)
+        folds = StratifiedKFold(n_splits= num_folds, shuffle=True, random_state=326)
     else:
-        folds = KFold(n_splits= num_folds, shuffle=True, random_state=4950)
+        folds = KFold(n_splits= num_folds, shuffle=True, random_state=326)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
@@ -172,12 +172,11 @@ def main(debug=False, use_pkl=False):
         del df
         gc.collect()
     with timer("Run XGBoost with kfold"):
-        kfold_xgboost(train_df, test_df, num_folds=NUM_FOLDS, stratified=False, debug=debug)
+        kfold_xgboost(train_df, test_df, num_folds=NUM_FOLDS, stratified=True, debug=debug)
 
 if __name__ == "__main__":
     submission_file_name = "../output/submission_xgb.csv"
     oof_file_name = "../output/oof_xgb.csv"
-    configs = json.load(open('../configs/205_xgb.json'))
-#    configs = json.load(open('../configs/207_lgbm_best.json'))
+    configs = json.load(open('../configs/203_xgb.json'))
     with timer("Full model run"):
         main(debug=False,use_pkl=True)

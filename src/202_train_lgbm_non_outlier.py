@@ -57,9 +57,9 @@ def kfold_lightgbm(train, test, num_folds, stratified = False, debug= False):
 
     # Cross validation model
     if stratified:
-        folds = StratifiedKFold(n_splits= num_folds, shuffle=True, random_state=4950)
+        folds = StratifiedKFold(n_splits= num_folds, shuffle=True, random_state=326)
     else:
-        folds = KFold(n_splits= num_folds, shuffle=True, random_state=4950)
+        folds = KFold(n_splits= num_folds, shuffle=True, random_state=326)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
@@ -89,21 +89,15 @@ def kfold_lightgbm(train, test, num_folds, stratified = False, debug= False):
                 'objective': 'regression',
                 'metric': 'rmse',
                 'learning_rate': 0.01,
-                "lambda_l1": 0.1,
-                "min_child_samples": 20,
-                "feature_fraction": 0.9,
-                "bagging_freq": 1,
-                "bagging_fraction": 0.9 ,
-                "lambda_l1": 0.1,
-#                'num_leaves': 31,
-#                'colsample_bytree': 0.9,
-#                'subsample': 0.805742797052828,
-#                'max_depth': -1,
-#                'reg_alpha': 0.196466392224054,
-#                'reg_lambda': 0.045887453950229,
-#                'min_split_gain': 0.247050274075659,
-#                'min_child_weight': 23.9202696807894,
-#                'min_data_in_leaf': 20,
+                'num_leaves': 55,
+                'colsample_bytree': 0.262486759021539,
+                'subsample': 0.356092888416977,
+                'max_depth': 9,
+                'reg_alpha': 8.59677197599587,
+                'reg_lambda': 5.31573224828026,
+                'min_split_gain': 3.8297778964351,
+                'min_child_weight': 42.5679182568601,
+                'min_data_in_leaf': 44,
                 'verbose': -1,
                 'seed':int(2**n_fold),
                 'bagging_seed':int(2**n_fold),
@@ -155,7 +149,7 @@ def kfold_lightgbm(train, test, num_folds, stratified = False, debug= False):
         train = train.reset_index()
         train[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
 
-def main(debug=False, use_pkl=False):
+def main(debug=False):
     with timer("Load Datasets"):
         # load feathers
         files = sorted(glob('../features/*.feather'))
@@ -178,6 +172,6 @@ def main(debug=False, use_pkl=False):
 if __name__ == "__main__":
     submission_file_name = "../output/submission_non_outlier.csv"
     oof_file_name = "../output/oof_lgbm_non_outlier.csv"
-    configs = json.load(open('../configs/202_lgbm_binary.json'))
+    configs = json.load(open('../configs/202_lgbm_non_outlier.json'))
     with timer("Full model run"):
-        main(debug=False,use_pkl=True)
+        main(debug=False)

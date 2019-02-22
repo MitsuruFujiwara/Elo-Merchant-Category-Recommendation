@@ -9,7 +9,7 @@ from utils import line_notify, loadpkl, rmse, submit
 # Blend & Submit
 ################################################################################
 
-# for best threshold
+# search best threshold
 def getBestThreshold(act, pred):
     rmse_bst = rmse(act, pred)
     print('oof rmse: {:.10f}'.format(rmse_bst))

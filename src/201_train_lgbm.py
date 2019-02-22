@@ -76,7 +76,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
                                label=valid_y,
                                free_raw_data=False)
 
-        # パラメータは適当です
+        # params are optimized by optuna
         params ={
                 'device' : 'gpu',
                 'gpu_use_dp':False,
@@ -178,7 +178,7 @@ def main(debug=False):
         del df
         gc.collect()
     with timer("Run LightGBM with kfold"):
-        kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, stratified=False, debug=debug)
+        kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, stratified=True, debug=debug)
 
 if __name__ == "__main__":
     submission_file_name = "../output/submission_lgbm.csv"

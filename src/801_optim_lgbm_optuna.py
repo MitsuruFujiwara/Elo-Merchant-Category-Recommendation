@@ -70,7 +70,7 @@ def objective(trial):
         params['top_rate'] = trial.suggest_uniform('top_rate', 0.0, 1.0)
         params['other_rate'] = trial.suggest_uniform('other_rate', 0.0, 1.0 - params['top_rate'])
 
-    folds = StratifiedKFold(n_splits=NUM_FOLDS, shuffle=True, random_state=4950)
+    folds = StratifiedKFold(n_splits=NUM_FOLDS, shuffle=True, random_state=326)
 
     clf = lightgbm.cv(params=params,
                       train_set=lgbm_train,

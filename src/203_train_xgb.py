@@ -132,27 +132,15 @@ def kfold_xgboost(train_df, test_df, num_folds, stratified = False, debug= False
         # 提出データの予測値を保存
         test_df.loc[:,'target'] = sub_preds
         test_df = test_df.reset_index()
-
-        # targetが一定値以下のものをoutlierで埋める
-#        q_test = test_df['target'].quantile(.0006)
-#        test_df.loc[:,'target']=test_df['target'].apply(lambda x: x if x > q_test else -33.21928095)
         test_df[['card_id', 'target']].to_csv(submission_file_name, index=False)
 
         # out of foldの予測値を保存
         train_df.loc[:,'OOF_PRED'] = oof_preds
         train_df = train_df.reset_index()
-
-        # targetが一定値以下のものをoutlierで埋める
-#        q_train = train_df['OOF_PRED'].quantile(.0006)
-#        train_df.loc[:,'OOF_PRED'] = train_df['OOF_PRED'].apply(lambda x: x if x > q_train else -33.21928095)
         train_df[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
 
-        # Adjusted Full RMSEスコアの表示 & LINE通知
-#        full_rmse_adj = rmse(train_df['target'], train_df['OOF_PRED'])
-#        line_notify('Adjusted Full RMSE score %.6f' % full_rmse_adj)
-
         # API経由でsubmit
-#        submit(submission_file_name, comment='model205 cv: %.6f' % full_rmse)
+#        submit(submission_file_name, comment='model203 cv: %.6f' % full_rmse)
 
 def main(debug=False, use_pkl=False):
     with timer("Load Datasets"):

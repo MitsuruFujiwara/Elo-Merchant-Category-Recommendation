@@ -34,7 +34,12 @@ def main():
     sub = pd.read_csv("../input/sample_submission.csv")
     sub_lgbm = pd.read_csv("../output/submission_lgbm.csv")
     sub_xgb = pd.read_csv("../output/submission_xgb.csv")
-    sub_lgbm_non_outlier = pd.read_csv("../output/submission_non_outlier.csv")
+    sub_lgbm_non_outlier = pd.read_csv("../output/submission_lgbm_non_outlier.csv")
+    sub_xgb_non_outlier = pd.read_csv("../output/submission_xgb_non_outlier.csv")
+
+    # non outlier
+    sub_non_outlier=pd.DataFrame()
+    sub_non_outlier['target'] = 0.5*sub_lgbm_non_outlier['target']+0.5*sub_xgb_non_outlier['target']
 
     # カラム名を変更
     sub.columns =['card_id', 'target']
@@ -43,7 +48,7 @@ def main():
     sub.loc[:,'target'] = 0.5*sub_lgbm['target']+0.5*sub_xgb['target']
 
     # post processing
-    sub.loc[sub['target']>0,'target'] = sub_lgbm_non_outlier.loc[sub['target']>0,'target']
+    sub.loc[sub['target']>0,'target'] = sub_non_outlier.loc[sub['target']>0,'target']
 
     del sub_lgbm, sub_xgb, sub_lgbm_non_outlier
     gc.collect()
@@ -55,10 +60,15 @@ def main():
     oof_lgbm = pd.read_csv("../output/oof_lgbm.csv")
     oof_xgb = pd.read_csv("../output/oof_xgb.csv")
     oof_lgbm_non_outlier = pd.read_csv("../output/oof_lgbm_non_outlier.csv")
+    oof_xgb_non_outlier = pd.read_csv("../output/oof_xgb_non_outlier.csv")
+
+    # non outlier
+    oof_preds_non_outlier = pd.DataFrame()
+    oof_preds_non_outlier['OOF_PRED'] = 0.5*oof_lgbm_non_outlier['OOF_PRED']+0.5*oof_xgb_non_outlier['OOF_PRED']
 
     oof_preds = pd.DataFrame()
     oof_preds['OOF_PRED'] = 0.5*oof_lgbm['OOF_PRED']+0.5*oof_xgb['OOF_PRED']
-    oof_preds.loc[(train_df['outliers']==0)&(oof_preds['OOF_PRED']>0),'OOF_PRED'] = oof_lgbm_non_outlier.loc[oof_preds['OOF_PRED']>0,'OOF_PRED']
+    oof_preds.loc[(train_df['outliers']==0)&(oof_preds['OOF_PRED']>0),'OOF_PRED'] = oof_preds_non_outlier.loc[oof_preds['OOF_PRED']>0,'OOF_PRED']
 
     # get best threshold
     th = getBestThreshold(train_df['target'], oof_preds['OOF_PRED'])

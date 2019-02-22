@@ -170,7 +170,7 @@ def main(debug=False):
         kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, stratified=False, debug=debug)
 
 if __name__ == "__main__":
-    submission_file_name = "../output/submission_non_outlier.csv"
+    submission_file_name = "../output/submission_lgbm_non_outlier.csv"
     oof_file_name = "../output/oof_lgbm_non_outlier.csv"
     configs = json.load(open('../configs/202_lgbm_non_outlier.json'))
     with timer("Full model run"):

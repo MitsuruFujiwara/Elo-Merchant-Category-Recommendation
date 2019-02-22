@@ -57,9 +57,9 @@ def kfold_xgboost(train, test, num_folds, stratified = False, debug= False):
 
     # Cross validation model
     if stratified:
-        folds = StratifiedKFold(n_splits= num_folds, shuffle=True, random_state=4950)
+        folds = StratifiedKFold(n_splits= num_folds, shuffle=True, random_state=326)
     else:
-        folds = KFold(n_splits= num_folds, shuffle=True, random_state=4950)
+        folds = KFold(n_splits= num_folds, shuffle=True, random_state=326)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
@@ -71,7 +71,7 @@ def kfold_xgboost(train, test, num_folds, stratified = False, debug= False):
     test_df_dmtrx = xgb.DMatrix(test_df[feats])
 
     # k-fold
-    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], train_df['outliers'])):
+    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], train_df['target'])):
         train_x, train_y = train_df[feats].iloc[train_idx], train_df['target'].iloc[train_idx]
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['target'].iloc[valid_idx]
 
@@ -111,7 +111,7 @@ def kfold_xgboost(train, test, num_folds, stratified = False, debug= False):
                         )
 
         # save model
-        reg.save_model('../output/xgb_'+str(n_fold)+'.txt')
+        reg.save_model('../output/xgb_'+str(n_fold)+'_non_outlier.txt')
 
         oof_preds[valid_idx] = reg.predict(xgb_test)
         sub_preds += reg.predict(test_df_dmtrx) / folds.n_splits
@@ -130,34 +130,19 @@ def kfold_xgboost(train, test, num_folds, stratified = False, debug= False):
 
     # display importances
     display_importances(feature_importance_df,
-                        '../output/xgb_importances.png',
-                        '../output/feature_importance_xgb.csv')
+                        '../output/xgb_importances_non_outlier.png',
+                        '../output/feature_importance_xgb_non_outlier.csv')
 
     if not debug:
         # 提出データの予測値を保存
-        test_df.loc[:,'target'] = sub_preds
-        test_df = test_df.reset_index()
-
-        # targetが一定値以下のものをoutlierで埋める
-#        q_test = test_df['target'].quantile(.0006)
-#        test_df.loc[:,'target']=test_df['target'].apply(lambda x: x if x > q_test else -33.21928095)
-        test_df[['card_id', 'target']].to_csv(submission_file_name, index=False)
+        test.loc[:,'target'] = sub_preds
+        test = test.reset_index()
+        test[['card_id', 'target']].to_csv(submission_file_name, index=False)
 
         # out of foldの予測値を保存
-        train_df.loc[:,'OOF_PRED'] = oof_preds
-        train_df = train_df.reset_index()
-
-        # targetが一定値以下のものをoutlierで埋める
-#        q_train = train_df['OOF_PRED'].quantile(.0006)
-#        train_df.loc[:,'OOF_PRED'] = train_df['OOF_PRED'].apply(lambda x: x if x > q_train else -33.21928095)
-        train_df[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
-
-        # Adjusted Full RMSEスコアの表示 & LINE通知
-#        full_rmse_adj = rmse(train_df['target'], train_df['OOF_PRED'])
-#        line_notify('Adjusted Full RMSE score %.6f' % full_rmse_adj)
-
-        # API経由でsubmit
-#        submit(submission_file_name, comment='model205 cv: %.6f' % full_rmse)
+        train.loc[train['outliers']==0,'OOF_PRED'] = oof_preds
+        train = train.reset_index()
+        train[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
 
 def main(debug=False, use_pkl=False):
     with timer("Load Datasets"):

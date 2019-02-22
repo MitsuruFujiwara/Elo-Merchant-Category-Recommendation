@@ -21,7 +21,7 @@ from utils import FEATS_EXCLUDED, NUM_FOLDS, loadpkl, line_notify
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # load datasets
-CONFIGS = json.load(open('../configs/205_xgb.json'))
+CONFIGS = json.load(open('../configs/204_xgb_non_outlier.json'))
 
 # load feathers
 FILES = sorted(glob('../features/*.feather'))
@@ -68,7 +68,7 @@ def objective(trial):
     param['colsample_bytree']=trial.suggest_uniform('colsample_bytree', 0.001, 1)
     param['colsample_bylevel'] = trial.suggest_uniform('colsample_bylevel', 0.001, 1)
 
-    folds = StratifiedKFold(n_splits=NUM_FOLDS, shuffle=True, random_state=4950)
+    folds = StratifiedKFold(n_splits=NUM_FOLDS, shuffle=True, random_state=326)
 
     clf = xgboost.cv(params=param,
                      dtrain=xgb_train,
@@ -78,14 +78,14 @@ def objective(trial):
                      num_boost_round=10000,
                      early_stopping_rounds=200,
                      verbose_eval=100,
-                     seed=47
+                     seed=326
                      )
     gc.collect()
     return clf['test-rmse-mean'].iloc[-1]
 
 if __name__ == '__main__':
     study = optuna.create_study()
-    study.optimize(objective, n_trials=30)
+    study.optimize(objective, n_trials=100)
 
     print('Number of finished trials: {}'.format(len(study.trials)))
 

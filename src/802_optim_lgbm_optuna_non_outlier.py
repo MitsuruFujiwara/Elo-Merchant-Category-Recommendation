@@ -73,14 +73,14 @@ def objective(trial):
         params['top_rate'] = trial.suggest_uniform('top_rate', 0.0, 1.0)
         params['other_rate'] = trial.suggest_uniform('other_rate', 0.0, 1.0 - params['top_rate'])
 
-    folds = StratifiedKFold(n_splits=NUM_FOLDS, shuffle=True, random_state=4950)
+    folds = StratifiedKFold(n_splits=NUM_FOLDS, shuffle=True, random_state=326)
 
     clf = lightgbm.cv(params=params,
                       train_set=lgbm_train,
                       metrics=['rmse'],
                       nfold=NUM_FOLDS,
                       folds=folds.split(TRAIN_DF[FEATS], TRAIN_DF['outliers']),
-                      num_boost_round=10000, # early stopありなのでここは大きめの数字にしてます
+                      num_boost_round=10000,
                       early_stopping_rounds=200,
                       verbose_eval=100,
                       seed=47,

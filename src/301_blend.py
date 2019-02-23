@@ -72,7 +72,7 @@ def main():
 
     # get best threshold
 #    th = getBestThreshold(train_df['target'], oof_preds['OOF_PRED'])
-    th = sub['target'].quantile(.0007)
+    th = sub['target'].quantile(.0003)
     sub.loc[:,'target']=sub['target'].apply(lambda x: x if x > th else -33.21928095)
 #    sub.loc[:,'target']=sub['target'].apply(lambda x: x if x > th else -15)
     oof_preds['OOF_PRED']=oof_preds['OOF_PRED'].apply(lambda x: x if x > th else -33.21928095)

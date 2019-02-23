@@ -83,14 +83,14 @@ def kfold_xgboost(train_df, test_df, num_folds, stratified = False, debug= False
                 'eval_metric':'rmse',
                 'silent':1,
                 'eta': 0.01,
-                'max_leaves': 63,
-                'colsample_bytree': 0.5665320670155495,
-                'subsample': 0.9855232997390695,
-                'max_depth': 7,
-                'reg_alpha': 9.677537745007898,
-                'reg_lambda': 8.2532317400459,
-                'gamma': 9.820197773625843,
-                'min_child_weight': 41.9612869171337,
+                'colsample_bytree': 0.602456630857159,
+                'colsample_bylevel': 0.674672876140377,
+                'subsample': 0.908588081216417,
+                'max_depth': 6,
+                'alpha': 0.0,
+                'lambda': 0.0,
+                'gamma': 0.000593299899029,
+                'min_child_weight': 35.5923361375671,
                 'tree_method': 'gpu_hist', # GPU parameter
                 'predictor': 'gpu_predictor', # GPU parameter
                 'seed':int(2**n_fold)

@@ -12,8 +12,6 @@ from time import time, sleep
 
 NUM_FOLDS = 11
 
-#feats_drop = pd.read_csv('feats_drop.csv')['feature'].tolist()
-
 FEATS_EXCLUDED = ['first_active_month', 'target', 'card_id', 'outliers', 'index',
                   'Outlier_Likelyhood', 'OOF_PRED', 'outliers_pred']
 
@@ -41,13 +39,13 @@ def one_hot_encoder(df, nan_as_category = True):
     new_columns = [c for c in df.columns if c not in original_columns]
     return df, new_columns
 
-# columns毎にtarget encodingを適用する関数
+# target encoding
 def targetEncoding(df, col, target):
     dict_for_map = df[df[target].notnull()].groupby(col)[target].mean()
     res = df[col].map(dict_for_map)
     return res
 
-# correlationの高い変数を削除する機能
+# remove correlated variables
 def removeCorrelatedVariables(data, threshold):
     print('Removing Correlated Variables...')
     corr_matrix = data.corr().abs()
@@ -55,7 +53,7 @@ def removeCorrelatedVariables(data, threshold):
     col_drop = [column for column in upper.columns if any(upper[column] > threshold) & ('target' not in column)]
     return col_drop
 
-# 欠損値の率が高い変数を削除する機能
+# remove missing variables
 def removeMissingVariables(data, threshold):
     print('Removing Missing Variables...')
     missing = (data.isnull().sum() / len(data)).sort_values(ascending = False)
@@ -63,7 +61,7 @@ def removeMissingVariables(data, threshold):
     col_missing = [column for column in col_missing if 'target' not in column]
     return col_missing
 
-# LINE通知用
+# LINE Notify
 def line_notify(message):
     f = open('../input/line_token.txt')
     token = f.read()
@@ -72,11 +70,11 @@ def line_notify(message):
     line_notify_api = 'https://notify-api.line.me/api/notify'
 
     payload = {'message': message}
-    headers = {'Authorization': 'Bearer ' + line_notify_token}  # 発行したトークン
+    headers = {'Authorization': 'Bearer ' + line_notify_token}
     line_notify = requests.post(line_notify_api, data=payload, headers=headers)
     print(message)
 
-# API経由でsubmitする機能 https://github.com/KazukiOnodera/Home-Credit-Default-Risk/blob/master/py/utils.py
+# API submission https://github.com/KazukiOnodera/Home-Credit-Default-Risk/blob/master/py/utils.py
 def submit(file_path, comment='from API'):
     os.system('kaggle competitions submit -c {} -f {} -m "{}"'.format(COMPETITION_NAME,file_path,comment))
     sleep(60) # tekito~~~~
@@ -100,7 +98,7 @@ def loadpkl(path):
     out = pickle.load(f)
     return out
 
-# memory節約のための処理
+# reduce memory usage
 def reduce_mem_usage(df, verbose=True):
     numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
     start_mem = df.memory_usage().sum() / 1024**2
@@ -132,7 +130,7 @@ def reduce_mem_usage(df, verbose=True):
 
     return df
 
-# parallel計算用
+# parallel apply
 def applyParallel(dfGrouped, func):
     with Pool(cpu_count()) as p:
         ret_list = p.map(func, [group for name, group in dfGrouped])

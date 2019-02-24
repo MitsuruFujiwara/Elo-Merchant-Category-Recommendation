@@ -13,6 +13,10 @@ from tqdm import tqdm
 
 from utils import line_notify, FEATS_EXCLUDED
 
+################################################################################
+# feature selection by boruta (not used)
+################################################################################
+
 def main():
     # load feathers
     files = sorted(glob('../features/*.feather'))

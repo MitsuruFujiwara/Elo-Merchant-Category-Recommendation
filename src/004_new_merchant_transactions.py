@@ -22,7 +22,7 @@ def main(num_rows=None):
     new_merchant_df['installments'].replace(-1, np.nan,inplace=True)
     new_merchant_df['installments'].replace(999, np.nan,inplace=True)
 
-    # Y/Nのカラムを1-0へ変換
+    # Y/N to 1/0
     new_merchant_df['authorized_flag'] = new_merchant_df['authorized_flag'].map({'Y': 1, 'N': 0}).astype(int)
     new_merchant_df['category_1'] = new_merchant_df['category_1'].map({'Y': 1, 'N': 0}).astype(int)
     new_merchant_df['category_3'] = new_merchant_df['category_3'].map({'A':0, 'B':1, 'C':2}).astype(int)
@@ -83,6 +83,7 @@ def main(num_rows=None):
     del merchants_df
     gc.collect()
 
+    # aggregation
     col_unique =['subsector_id', 'merchant_id', 'merchant_category_id']
     col_seas = ['month', 'hour', 'weekofyear', 'weekday', 'day']
 
@@ -128,7 +129,7 @@ def main(num_rows=None):
 
     new_merchant_df = new_merchant_df.reset_index().groupby('card_id').agg(aggs)
 
-    # カラム名の変更
+    # change column names
     new_merchant_df.columns = pd.Index([e[0] + "_" + e[1] for e in new_merchant_df.columns.tolist()])
     new_merchant_df.columns = ['new_'+ c for c in new_merchant_df.columns]
 
@@ -137,7 +138,7 @@ def main(num_rows=None):
     new_merchant_df['new_purchase_date_uptonow'] = (pd.to_datetime('2019-01-01')-new_merchant_df['new_purchase_date_max']).dt.days
     new_merchant_df['new_purchase_date_uptomin'] = (pd.to_datetime('2019-01-01')-new_merchant_df['new_purchase_date_min']).dt.days
 
-    # save
+    # save as pkl
     save2pkl('../features/new_merchant_transactions.pkl', new_merchant_df)
 
 if __name__ == '__main__':

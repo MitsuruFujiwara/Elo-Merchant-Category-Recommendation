@@ -30,7 +30,7 @@ def main():
     del train_df, test_df
     gc.collect()
 
-    # datetimeへ変換
+    # to datetime
     df['first_active_month'] = pd.to_datetime(df['first_active_month'])
 
     # datetime features
@@ -49,7 +49,7 @@ def main():
     for f in ['month','year','dayofweek','weekofyear','quarter','month_year']:
         order_label = df.groupby([f])['outliers'].mean()
         df[f] = df[f].map(order_label)
-    
+
     for f in ['feature_1','feature_2','feature_3']:
         order_label = df.groupby([f])['outliers'].mean()
         df[f] = df[f].map(order_label)

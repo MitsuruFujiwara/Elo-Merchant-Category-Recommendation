@@ -19,8 +19,7 @@ from tqdm import tqdm
 from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, rmse, submit
 
 ################################################################################
-# Preprocessingで作成したファイルを読み込み、モデルを学習するモジュール。
-# 学習済みモデルや特徴量、クロスバリデーションの評価結果を出力する関数も定義してください。
+# Train LightGBM with outliers
 ################################################################################
 
 warnings.simplefilter(action='ignore', category=SettingWithCopyWarning)
@@ -37,7 +36,7 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
     cols = feature_importance_df_[["feature", "importance"]].groupby("feature").mean().sort_values(by="importance", ascending=False)[:40].index
     best_features = feature_importance_df_.loc[feature_importance_df_.feature.isin(cols)]
 
-    # importance下位の確認用に追加しました
+    # for checking all importance
     _feature_importance_df_=feature_importance_df_.groupby('feature').sum()
     _feature_importance_df_.to_csv(csv_outputpath)
 
@@ -76,7 +75,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
                                label=valid_y,
                                free_raw_data=False)
 
-        # params are optimized by optuna
+        # params optimized by optuna
         params ={
                 'device' : 'gpu',
                 'gpu_use_dp':True,
@@ -100,6 +99,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
                 'drop_seed':int(2**n_fold)
                 }
 
+        # train model
         reg = lgb.train(
                         params,
                         lgb_train,
@@ -113,19 +113,22 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
         # save model
         reg.save_model('../output/lgbm_'+str(n_fold)+'.txt')
 
+        # save predictions
         oof_preds[valid_idx] = reg.predict(valid_x, num_iteration=reg.best_iteration)
         sub_preds += reg.predict(test_df[feats], num_iteration=reg.best_iteration) / folds.n_splits
 
+        # save feature importances
         fold_importance_df = pd.DataFrame()
         fold_importance_df["feature"] = feats
         fold_importance_df["importance"] = np.log1p(reg.feature_importance(importance_type='gain', iteration=reg.best_iteration))
         fold_importance_df["fold"] = n_fold + 1
         feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
+
         print('Fold %2d RMSE : %.6f' % (n_fold + 1, rmse(valid_y, oof_preds[valid_idx])))
         del reg, train_x, train_y, valid_x, valid_y
         gc.collect()
 
-    # Full RMSEスコアの表示&LINE通知
+    # Full RMSE score and LINE Notify
     full_rmse = rmse(train_df['target'], oof_preds)
     line_notify('Full RMSE score %.6f' % full_rmse)
 
@@ -135,17 +138,17 @@ def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= Fals
                         '../output/feature_importance_lgbm.csv')
 
     if not debug:
-        # 提出データの予測値を保存
+        # save prediction for submit
         test_df.loc[:,'target'] = sub_preds
         test_df = test_df.reset_index()
         test_df[['card_id', 'target']].to_csv(submission_file_name, index=False)
 
-        # out of foldの予測値を保存
+        # save out of fold prediction
         train_df.loc[:,'OOF_PRED'] = oof_preds
         train_df = train_df.reset_index()
         train_df[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
 
-        # API経由でsubmit
+        # submission by API
 #        submit(submission_file_name, comment='model201 cv: %.6f' % full_rmse)
 
 def main(debug=False):

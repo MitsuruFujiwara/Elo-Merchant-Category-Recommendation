@@ -14,7 +14,7 @@ def main(num_rows=None):
     # load csv
     merchants_df = pd.read_csv('../input/merchants.csv',index_col=['merchant_id'],nrows=num_rows)
 
-    # Y/Nのカラムを1-0へ変換
+    # Y/N to 1/0
     merchants_df['category_1'] = merchants_df['category_1'].map({'Y': 1, 'N': 0}).astype(int)
     merchants_df['category_4'] = merchants_df['category_4'].map({'Y': 1, 'N': 0}).astype(int)
 
@@ -100,11 +100,11 @@ def main(num_rows=None):
     """
     merchants_df = merchants_df.reset_index().groupby('merchant_id').agg(aggs)
 
-    # カラム名の変更
+    # change column names
     merchants_df.columns = pd.Index([e[0] + "_" + e[1] for e in merchants_df.columns.tolist()])
     merchants_df.columns = ['mer_'+ c for c in merchants_df.columns]
 
-    # save
+    # save as pkl
     save2pkl('../features/merchants.pkl', merchants_df)
 
 if __name__ == '__main__':

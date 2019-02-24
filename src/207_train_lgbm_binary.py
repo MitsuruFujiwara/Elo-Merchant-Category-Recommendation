@@ -20,7 +20,7 @@ from tqdm import tqdm
 from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, rmse, submit, to_feature
 
 ################################################################################
-# Model For Outliers Classification
+# Model For Outliers Classification (not used)
 ################################################################################
 
 warnings.simplefilter(action='ignore', category=SettingWithCopyWarning)

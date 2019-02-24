@@ -108,6 +108,7 @@ def main(num_rows=None):
     del merchants_df
     gc.collect()
 
+    # aggregation
     col_unique =['subsector_id', 'merchant_id', 'merchant_category_id']
     col_seas = ['month', 'hour', 'weekofyear', 'weekday', 'day', 'weekend']
 
@@ -172,7 +173,7 @@ def main(num_rows=None):
 
     hist_df = hist_df.reset_index().groupby('card_id').agg(aggs)
 
-    # カラム名の変更
+    # change column name
     hist_df.columns = pd.Index([e[0] + "_" + e[1] for e in hist_df.columns.tolist()])
     hist_df.columns = ['hist_'+ c for c in hist_df.columns]
 
@@ -181,7 +182,7 @@ def main(num_rows=None):
     hist_df['hist_purchase_date_uptonow'] = (pd.to_datetime('2019-01-01')-hist_df['hist_purchase_date_max']).dt.days
     hist_df['hist_purchase_date_uptomin'] = (pd.to_datetime('2019-01-01')-hist_df['hist_purchase_date_min']).dt.days
 
-    # save
+    # save as pkl
     save2pkl('../features/historical_transactions.pkl', hist_df)
 
 if __name__ == '__main__':

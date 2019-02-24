@@ -14,8 +14,8 @@ from tqdm import tqdm
 from utils import FEATS_EXCLUDED, NUM_FOLDS, loadpkl, line_notify
 
 ################################################################################
-# optunaによるhyper parameter最適化
-# 参考: https://github.com/pfnet/optuna/blob/master/examples/lightgbm_simple.py
+# hyper parameter optimization by optuna
+# https://github.com/pfnet/optuna/blob/master/examples/lightgbm_simple.py
 ################################################################################
 
 warnings.simplefilter(action='ignore', category=FutureWarning)

@@ -18,8 +18,7 @@ from tqdm import tqdm
 from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, rmse, submit
 
 ################################################################################
-# Preprocessingで作成したファイルを読み込み、モデルを学習するモジュール。
-# 学習済みモデルや特徴量、クロスバリデーションの評価結果を出力する関数も定義してください。
+# Train XGBoost with non-outliers
 ################################################################################
 
 warnings.simplefilter(action='ignore', category=SettingWithCopyWarning)
@@ -36,7 +35,7 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
     cols = feature_importance_df_[["feature", "importance"]].groupby("feature").mean().sort_values(by="importance", ascending=False)[:40].index
     best_features = feature_importance_df_.loc[feature_importance_df_.feature.isin(cols)]
 
-    # importance下位の確認用に追加しました
+    # for checking all importance
     _feature_importance_df_=feature_importance_df_.groupby('feature').sum()
     _feature_importance_df_.to_csv(csv_outputpath)
 
@@ -67,7 +66,7 @@ def kfold_xgboost(train, test, num_folds, stratified = False, debug= False):
     feature_importance_df = pd.DataFrame()
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
 
-    # final predict用にdmatrix形式のtest dfを作っておきます
+    # dmatrix for test_df
     test_df_dmtrx = xgb.DMatrix(test_df[feats])
 
     # k-fold
@@ -81,7 +80,7 @@ def kfold_xgboost(train, test, num_folds, stratified = False, debug= False):
         xgb_test = xgb.DMatrix(valid_x,
                                label=valid_y)
 
-        # params
+        # params optimized by optuna
         params = {
                 'objective':'gpu:reg:linear', # GPU parameter
                 'booster': 'gbtree',
@@ -102,6 +101,7 @@ def kfold_xgboost(train, test, num_folds, stratified = False, debug= False):
                 'seed':int(2**n_fold)
                 }
 
+        # train model
         reg = xgb.train(
                         params,
                         xgb_train,
@@ -114,18 +114,21 @@ def kfold_xgboost(train, test, num_folds, stratified = False, debug= False):
         # save model
         reg.save_model('../output/xgb_'+str(n_fold)+'_non_outlier.txt')
 
+        # save predictions
         oof_preds[valid_idx] = reg.predict(xgb_test)
         sub_preds += reg.predict(test_df_dmtrx) / folds.n_splits
 
+        # save feature importances
         fold_importance_df = pd.DataFrame.from_dict(reg.get_score(importance_type='gain'), orient='index', columns=['importance'])
         fold_importance_df["feature"] = fold_importance_df.index.tolist()
         fold_importance_df["fold"] = n_fold + 1
         feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
+
         print('Fold %2d RMSE : %.6f' % (n_fold + 1, rmse(valid_y, oof_preds[valid_idx])))
         del reg, train_x, train_y, valid_x, valid_y
         gc.collect()
 
-    # Full RMSEスコアの表示&LINE通知
+    # Full RMSE score and LINE Notify
     full_rmse = rmse(train_df['target'], oof_preds)
     line_notify('Full RMSE score %.6f' % full_rmse)
 
@@ -135,12 +138,12 @@ def kfold_xgboost(train, test, num_folds, stratified = False, debug= False):
                         '../output/feature_importance_xgb_non_outlier.csv')
 
     if not debug:
-        # 提出データの予測値を保存
+        # save prediction for submit
         test.loc[:,'target'] = sub_preds
         test = test.reset_index()
         test[['card_id', 'target']].to_csv(submission_file_name, index=False)
 
-        # out of foldの予測値を保存
+        # save out of fold prediction
         train.loc[train['outliers']==0,'OOF_PRED'] = oof_preds
         train = train.reset_index()
         train[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)

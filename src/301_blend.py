@@ -30,7 +30,7 @@ def getBestThreshold(act, pred):
     return th
 
 def main():
-    # submitファイルをロード
+    # load submit files
     sub = pd.read_csv("../input/sample_submission.csv")
     sub_lgbm = pd.read_csv("../output/submission_lgbm.csv")
     sub_xgb = pd.read_csv("../output/submission_xgb.csv")
@@ -41,9 +41,6 @@ def main():
     sub_non_outlier=pd.DataFrame()
     sub_non_outlier['target'] = 0.5*sub_lgbm_non_outlier['target']+0.5*sub_xgb_non_outlier['target']
 
-    # カラム名を変更
-    sub.columns =['card_id', 'target']
-
     # merge
     sub.loc[:,'target'] = 0.5*sub_lgbm['target']+0.5*sub_xgb['target']
 
@@ -53,10 +50,10 @@ def main():
     del sub_lgbm, sub_xgb, sub_lgbm_non_outlier
     gc.collect()
 
-    # train_dfをロード
+    # load train_df
     train_df = loadpkl('../output/train_df.pkl')
 
-    # out of foldの予測値をロード
+    # load out of fold predictions
     oof_lgbm = pd.read_csv("../output/oof_lgbm.csv")
     oof_xgb = pd.read_csv("../output/oof_xgb.csv")
     oof_lgbm_non_outlier = pd.read_csv("../output/oof_lgbm_non_outlier.csv")
@@ -72,16 +69,16 @@ def main():
 
     # get best threshold
 #    th = getBestThreshold(train_df['target'], oof_preds['OOF_PRED'])
-    th = sub['target'].quantile(.0003)
+    th = sub['target'].quantile(.0001)
     sub.loc[:,'target']=sub['target'].apply(lambda x: x if x > th else -33.21928095)
 #    sub.loc[:,'target']=sub['target'].apply(lambda x: x if x > th else -15)
     oof_preds['OOF_PRED']=oof_preds['OOF_PRED'].apply(lambda x: x if x > th else -33.21928095)
 #    oof_preds['OOF_PRED']=oof_preds['OOF_PRED'].apply(lambda x: x if x > th else -15)
 
-    # local cv scoreを算出
+    # local cv score
     local_rmse = rmse(train_df['target'], oof_preds)
 
-    # LINE通知
+    # LINE Notify
     line_notify('Blend Local RMSE score %.6f' % local_rmse)
 
     del oof_lgbm, oof_xgb
@@ -90,8 +87,8 @@ def main():
     # save submit file
     sub[['card_id', 'target']].to_csv(submission_file_name, index=False)
 
-    # API経由でsubmit
-    submit(submission_file_name, comment='model301 cv: %.6f' % local_rmse)
+    # subimission by API
+#    submit(submission_file_name, comment='model301 cv: %.6f' % local_rmse)
 
 if __name__ == '__main__':
     submission_file_name = "../output/submission_blend.csv"

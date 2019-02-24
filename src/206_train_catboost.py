@@ -18,8 +18,7 @@ from tqdm import tqdm
 from utils import line_notify, NUM_FOLDS, FEATS_EXCLUDED, rmse, submit
 
 ################################################################################
-# Preprocessingで作成したファイルを読み込み、モデルを学習するモジュール。
-# 学習済みモデルや特徴量、クロスバリデーションの評価結果を出力する関数も定義してください。
+# Train CatBoost with outliers (not used)
 ################################################################################
 
 warnings.simplefilter(action='ignore', category=SettingWithCopyWarning)
@@ -36,7 +35,7 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
     cols = feature_importance_df_[["feature", "importance"]].groupby("feature").mean().sort_values(by="importance", ascending=False)[:40].index
     best_features = feature_importance_df_.loc[feature_importance_df_.feature.isin(cols)]
 
-    # importance下位の確認用に追加しました
+    # for checking all importance
     _feature_importance_df_=feature_importance_df_.groupby('feature').sum()
     _feature_importance_df_.to_csv(csv_outputpath)
 
@@ -71,7 +70,7 @@ def kfold_catboost(train_df, test_df, num_folds, stratified = False, debug= Fals
         cb_train = cb.Pool(train_x, label=train_y)
         cb_test = cb.Pool(valid_x, label=valid_y)
 
-        # パラメータは適当です
+        # params
         params ={
                 'task_type' : 'GPU',
                 'loss_function': 'RMSE',

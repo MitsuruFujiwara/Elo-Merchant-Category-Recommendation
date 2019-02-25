@@ -47,14 +47,14 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
     plt.savefig(outputpath)
 
 # LightGBM GBDT with KFold or Stratified KFold
-def kfold_lightgbm(train_df, test_df, num_folds, stratified = False, debug= False):
+def kfold_lightgbm(train_df,test_df,num_folds,stratified=False,debug=False):
     print("Starting LightGBM. Train shape: {}, test shape: {}".format(train_df.shape, test_df.shape))
 
     # Cross validation model
     if stratified:
-        folds = StratifiedKFold(n_splits= num_folds, shuffle=True, random_state=326)
+        folds = StratifiedKFold(n_splits=num_folds,shuffle=True,random_state=4950)
     else:
-        folds = KFold(n_splits= num_folds, shuffle=True, random_state=326)
+        folds = KFold(n_splits= num_folds, shuffle=True, random_state=4950)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])

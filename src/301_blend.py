@@ -68,12 +68,12 @@ def main():
     oof_preds.loc[(train_df['outliers']==0)&(oof_preds['OOF_PRED']>0),'OOF_PRED'] = oof_preds_non_outlier.loc[oof_preds['OOF_PRED']>0,'OOF_PRED']
 
     # get best threshold
-#    th = getBestThreshold(train_df['target'], oof_preds['OOF_PRED'])
-    th = sub['target'].quantile(.0001)
-    sub.loc[:,'target']=sub['target'].apply(lambda x: x if x > th else -33.21928095)
-#    sub.loc[:,'target']=sub['target'].apply(lambda x: x if x > th else -15)
-    oof_preds['OOF_PRED']=oof_preds['OOF_PRED'].apply(lambda x: x if x > th else -33.21928095)
-#    oof_preds['OOF_PRED']=oof_preds['OOF_PRED'].apply(lambda x: x if x > th else -15)
+    th = getBestThreshold(train_df['target'], oof_preds['OOF_PRED'])
+#    th = sub['target'].quantile(.0001)
+#    sub.loc[:,'target']=sub['target'].apply(lambda x: x if x > th else -33.21928095)
+    sub.loc[:,'target']=sub['target'].apply(lambda x: x if x > th else -15)
+#    oof_preds['OOF_PRED']=oof_preds['OOF_PRED'].apply(lambda x: x if x > th else -33.21928095)
+    oof_preds['OOF_PRED']=oof_preds['OOF_PRED'].apply(lambda x: x if x > th else -15)
 
     # local cv score
     local_rmse = rmse(train_df['target'], oof_preds)
@@ -88,7 +88,7 @@ def main():
     sub[['card_id', 'target']].to_csv(submission_file_name, index=False)
 
     # subimission by API
-#    submit(submission_file_name, comment='model301 cv: %.6f' % local_rmse)
+    submit(submission_file_name, comment='model301 cv: %.6f' % local_rmse)
 
 if __name__ == '__main__':
     submission_file_name = "../output/submission_blend.csv"

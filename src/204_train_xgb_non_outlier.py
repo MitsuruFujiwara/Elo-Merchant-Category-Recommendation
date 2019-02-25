@@ -56,9 +56,9 @@ def kfold_xgboost(train, test, num_folds, stratified = False, debug= False):
 
     # Cross validation model
     if stratified:
-        folds = StratifiedKFold(n_splits= num_folds, shuffle=True, random_state=326)
+        folds = StratifiedKFold(n_splits= num_folds, shuffle=True, random_state=4950)
     else:
-        folds = KFold(n_splits= num_folds, shuffle=True, random_state=326)
+        folds = KFold(n_splits= num_folds, shuffle=True, random_state=4950)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
